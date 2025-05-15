@@ -1,0 +1,91 @@
+<div class="card">
+  <p-card>
+    <form [formGroup]="dynamicForm" (ngSubmit)="onSubmit()">
+      <div class="grid">
+        <div *ngFor="let control of formStructure" class="col-12 md:col-6 lg:col-3">
+          <!-- Text & Number -->
+          <div class="field mb-3" *ngIf="['text', 'number'].includes(control.type)">
+            <label [for]="control.name" class="block mb-2">{{ control.label }}</label>
+            <input 
+              [type]="control.type" 
+              pInputText 
+              [id]="control.name"
+              [formControlName]="control.name" 
+              class="w-full"
+              [ngClass]="{'ng-invalid ng-dirty': dynamicForm.get(control.name)?.invalid && dynamicForm.get(control.name)?.touched}"
+            />
+            <small 
+              class="p-error block mt-2" 
+              *ngIf="dynamicForm.get(control.name)?.invalid && dynamicForm.get(control.name)?.touched"
+            >
+              {{ getErrorMessage(control) }}
+            </small>
+          </div>
+
+          <!-- Textarea -->
+          <div class="field mb-3" *ngIf="control.type === 'textarea'">
+            <label [for]="control.name" class="block mb-2">{{ control.label }}</label>
+            <textarea 
+              pInputTextarea 
+              [id]="control.name"
+              [formControlName]="control.name" 
+              class="w-full"
+              [ngClass]="{'ng-invalid ng-dirty': dynamicForm.get(control.name)?.invalid && dynamicForm.get(control.name)?.touched}"
+            ></textarea>
+            <small 
+              class="p-error block mt-2" 
+              *ngIf="dynamicForm.get(control.name)?.invalid && dynamicForm.get(control.name)?.touched"
+            >
+              {{ getErrorMessage(control) }}
+            </small>
+          </div>
+
+          <!-- Radio Button -->
+          <div class="field mb-3" *ngIf="control.type === 'radio'">
+            <label class="block mb-2">{{ control.label }}</label>
+            <div class="flex flex-wrap gap-3">
+              <div *ngFor="let option of control.options" class="flex align-items-center">
+                <p-radioButton 
+                  [inputId]="control.name + '_' + option.value"
+                  [name]="control.name" 
+                  [value]="option.value" 
+                  [formControlName]="control.name"
+                ></p-radioButton>
+                <label [for]="control.name + '_' + option.value" class="ml-2">{{ option.label }}</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Select -->
+          <div class="field mb-3" *ngIf="control.type === 'select'">
+            <label [for]="control.name" class="block mb-2">{{ control.label }}</label>
+            <p-dropdown 
+              [id]="control.name"
+              [options]="control.options" 
+              optionLabel="label" 
+              optionValue="value"
+              [formControlName]="control.name"
+              placeholder="-Select-"
+              styleClass="w-full"
+              [ngClass]="{'ng-invalid ng-dirty': dynamicForm.get(control.name)?.invalid && dynamicForm.get(control.name)?.touched}"
+            ></p-dropdown>
+            <small 
+              class="p-error block mt-2" 
+              *ngIf="dynamicForm.get(control.name)?.invalid && dynamicForm.get(control.name)?.touched"
+            >
+              {{ getErrorMessage(control) }}
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-content-end">
+        <p-button 
+          type="submit" 
+          label="Submit" 
+          styleClass="p-button-primary mt-3"
+        ></p-button>
+      </div>
+    </form>
+  </p-card>
+</div>

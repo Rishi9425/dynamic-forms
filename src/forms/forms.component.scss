@@ -1,0 +1,73 @@
+.form-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+}
+
+:host ::ng-deep {
+  /* Card styling */
+  .p-card {
+    border-radius: 8px;
+  }
+  
+  .p-card .p-card-content {
+    padding: 1rem;
+  }
+
+  /* Form controls styling */
+  .p-inputtext, .p-dropdown, .p-inputtextarea {
+    width: 100%;
+  }
+  
+  .p-inputtext:enabled:focus, 
+  .p-dropdown:enabled:focus, 
+  .p-inputtextarea:enabled:focus {
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px rgba(102, 153, 255, 0.3);
+  }
+
+  /* Required field indicator */
+  .pi-star-fill {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 8px;
+  }
+  
+  /* Form layout */
+  .p-fluid .p-inputtext, 
+  .p-fluid .p-dropdown, 
+  .p-fluid .p-inputtextarea {
+    width: 100%;
+  }
+
+  /* Error styling */
+  .p-error {
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+
+  /* Radio button styling */
+  .p-radiobutton .p-radiobutton-box.p-highlight {
+    border-color: var(--primary-color);
+    background-color: var(--primary-color);
+  }
+  
+  .p-radiobutton .p-radiobutton-box.p-highlight:not(.p-disabled):hover {
+    border-color: var(--primary-color);
+    background-color: var(--primary-color);
+  }
+
+  /* Button styling */
+  .p-button.p-button-raised {
+    box-shadow: 0 3px 1px -2px rgba(0,0,0,.2), 0 2px 2px 0 rgba(0,0,0,.14), 0 1px 5px 0 rgba(0,0,0,.12);
+    min-width: 150px;
+  }
+  
+  /* Label styling */
+  label {
+    color: var(--text-color);
+    font-weight: 500;
+  }
+}
