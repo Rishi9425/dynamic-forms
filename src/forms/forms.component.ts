@@ -3,26 +3,26 @@ import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { ImportsModule } from './imports';
 import { IFormStructure } from '../domain/forms';
 import { FormService } from '../service/form-service.service';
-
+import { Router, RouterModule } from '@angular/router';
+import { Calendar } from 'primeng/calendar';
 @Component({
   selector: 'app-forms',
   standalone: true,
-  imports: [ImportsModule],
+  imports: [ImportsModule, RouterModule, Calendar],
   templateUrl: './forms.component.html',
   styleUrl: './forms.component.scss'
 })
 export class DynamicFormComponent implements OnInit {
   formStructure: IFormStructure[] = [];
-  dynamicForm: FormGroup;
+  dynamicForm!: FormGroup; // Marked with ! to indicate it's definitely assigned
   loading = true;
+  submitting = false;
 
-  constructor(private fb: FormBuilder, private formService: FormService) {
-    // Initialize with empty form group - we'll populate it after data loads
-    this.dynamicForm = this.fb.group({});
-  }
-  
+  constructor(private fb: FormBuilder, private formService: FormService, private router: Router) {}
+
   ngOnInit(): void {
-    // Simple way to get form data from service
+    this.dynamicForm = this.fb.group({}); // ✅ Now initialized here
+
     this.formService.getFormStructure()
       .then((data) => {
         this.formStructure = data;
@@ -35,70 +35,95 @@ export class DynamicFormComponent implements OnInit {
       });
   }
 
-  // Initialize the form once we have the form structure
   private initForm(): void {
     let formGroup: Record<string, any> = {};
-    
+
     this.formStructure.forEach((control) => {
-      let controlValidators: any[] = [];
-
-      if (control.validations) {
-        control.validations.forEach(
-          (validation: {
-            name: string;
-            validator: string;
-            message: string;
-            value?: any;
-          }) => {
-            if (validation.validator === 'required')
-              controlValidators.push(Validators.required);
-            if (validation.validator === 'email')
-              controlValidators.push(Validators.email);
-            if (validation.validator === 'minLength' && validation.value)
-              controlValidators.push(Validators.minLength(validation.value));
-            if (validation.validator === 'maxLength' && validation.value)
-              controlValidators.push(Validators.maxLength(validation.value));
-            if (validation.validator === 'pattern' && validation.value)
-              controlValidators.push(Validators.pattern(validation.value));
-            if (validation.validator === 'min' && validation.value !== undefined)
-              controlValidators.push(Validators.min(validation.value));
-            if (validation.validator === 'max' && validation.value !== undefined)
-              controlValidators.push(Validators.max(validation.value));
-            // Add more built-in validators as needed
-          }
-        );
-      }
-
+      const controlValidators = this.getValidators(control);
       formGroup[control.name] = [control.value || '', controlValidators];
     });
 
     this.dynamicForm = this.fb.group(formGroup);
   }
 
-  getErrorMessage(control: any) {
-    const formControl = this.dynamicForm.get(control.name);
+  private getValidators(control: IFormStructure): any[] {
+    if (!control.validations || !control.validations.length) return [];
 
-    if (!formControl) {
-      return '';
-    }
+    const validatorFunctions: Record<string, Function> = {
+      required: () => Validators.required,
+      email: () => Validators.email,
+      minLength: (v: number) => Validators.minLength(v),
+      maxLength: (v: number) => Validators.maxLength(v),
+      pattern: (v: string) => Validators.pattern(v),
+      min: (v: number) => Validators.min(v),
+      max: (v: number) => Validators.max(v)
+    };
 
-    if (control.validations) {
-      for (let validation of control.validations) {
-        if (formControl.hasError(validation.validator)) {
-          return validation.message;
+    return control.validations
+      .map(validation => {
+        const fn = validatorFunctions[validation.validator];
+        if (!fn) return null;
+        if (['minLength', 'maxLength', 'pattern', 'min', 'max'].includes(validation.validator)) {
+          return validation.value !== undefined ? fn(validation.value) : null;
         }
+        return fn();
+      })
+      .filter(v => v !== null);
+  }
+
+  getErrorMessage(control: any): string {
+    const formControl = this.dynamicForm.get(control.name);
+    if (!formControl || !control.validations) return '';
+
+    for (let validation of control.validations) {
+      if (formControl.hasError(validation.validator)) {
+        return validation.message;
       }
     }
 
     return '';
   }
 
-  onSubmit() {
+  onSubmit(): void {
     if (!this.dynamicForm.valid) {
       this.dynamicForm.markAllAsTouched();
       return;
     }
-    console.log(this.dynamicForm.value);
-    
+
+    this.submitting = true;
+    const formData = this.dynamicForm.value;
+
+    console.log('Form data before submission:', formData);
+
+    this.formService.submitFormData(formData).subscribe({
+      next: (response) => {
+        console.log('Form submitted successfully:', response);
+        this.submitting = false;
+        // Optionally reset or navigate
+        // this.dynamicForm.reset();
+         this.router.navigate(['/cards']);
+      },
+      error: (error) => {
+        console.error('Error submitting form:', error);
+        this.submitting = false;
+      }
+
+      
+    });
+  }
+
+  show(): void {
+    this.router.navigate(['/cards']);
+  }
+
+  loadFormsFromBackend(): void {
+    this.formService.getFormsFromBackend().subscribe({
+      next: (forms) => {
+        console.log('Forms from backend:', forms);
+      },
+      error: (error) => {
+        console.error('Error loading forms from backend:', error);
+      }
+    });
   }
 }

@@ -1,0 +1,262 @@
+// Beautiful button styles for table actions
+.action-buttons-cell {
+  text-align: center;
+  padding: 1.2rem 0.5rem !important;
+}
+
+.button-group {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.beautiful-button {
+  position: relative;
+  padding: 0.875rem 1.5rem !important;
+  font-size: 0.95rem !important;
+  font-weight: 600 !important;
+  min-height: 2.75rem !important;
+  border-radius: 25px !important;
+  border: none !important;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+  overflow: hidden;
+  
+  // Icon and label styling
+  .pi {
+    margin-right: 0.6rem !important;
+    font-size: 1rem !important;
+    font-weight: bold;
+  }
+  
+  .p-button-label {
+    font-weight: 600 !important;
+    letter-spacing: 0.025em;
+  }
+  
+  // Hover effects
+  &:hover {
+    transform: translateY(-3px) scale(1.05) !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2) !important;
+  }
+  
+  // Active/pressed state
+  &:active {
+    transform: translateY(0) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  // Focus state for accessibility
+  &:focus {
+    outline: 2px solid rgba(59, 130, 246, 0.5) !important;
+    outline-offset: 2px !important;
+  }
+}
+
+// Edit Button Styling
+.edit-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+    border-radius: 25px;
+    pointer-events: none;
+  }
+  
+  &:hover {
+    background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%) !important;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4) !important;
+  }
+  
+  &:active {
+    background: linear-gradient(135deg, #4c51bf 0%, #553c9a 100%) !important;
+    transform: translateY(-1px) scale(1.02) !important;
+  }
+  
+  // Ripple effect on click
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease;
+    z-index: 1;
+  }
+  
+  &:active::before {
+    width: 200px;
+    height: 200px;
+  }
+}
+
+
+// Delete Button Styling
+.delete-btn {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%) !important;
+  color: white !important;
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+    border-radius: 25px;
+    pointer-events: none;
+  }
+  
+  &:hover {
+    background: linear-gradient(135deg, #ff5252 0%, #e53e3e 100%) !important;
+    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4) !important;
+  }
+  
+  &:active {
+    background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%) !important;
+    transform: translateY(-1px) scale(1.02) !important;
+  }
+  
+  // Ripple effect on click
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s;
+  }
+  
+  &:active::before {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+// Table styling improvements
+.p-datatable .p-datatable-thead > tr > th {
+  background: #f8fafc !important;
+  color: #374151 !important;
+  font-weight: 600 !important;
+  font-size: 0.9rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1rem 0.75rem !important;
+  border-bottom: 2px solid #e5e7eb !important;
+}
+
+.p-datatable .p-datatable-tbody > tr > td {
+  padding: 1rem 0.75rem !important;
+  border-bottom: 1px solid #f3f4f6 !important;
+  vertical-align: middle;
+}
+
+.p-datatable .p-datatable-tbody > tr:hover {
+  background: #f9fafb !important;
+}
+
+// Actions column width
+.p-datatable th:last-child,
+.p-datatable td:last-child {
+  width: 220px;
+  min-width: 220px;
+}
+
+// Responsive Design
+@media (max-width: 992px) {
+  .beautiful-button {
+    padding: 0.75rem 1.25rem !important;
+    font-size: 0.9rem !important;
+    min-height: 2.5rem !important;
+    border-radius: 20px !important;
+    
+    .pi {
+      margin-right: 0.5rem !important;
+      font-size: 0.95rem !important;
+    }
+  }
+  
+  .button-group {
+    gap: 0.5rem;
+  }
+  
+  .p-datatable th:last-child,
+  .p-datatable td:last-child {
+    width: 180px;
+    min-width: 180px;
+  }
+}
+
+@media (max-width: 768px) {
+  .button-group {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .beautiful-button {
+    width: 100%;
+    max-width: 120px;
+    padding: 0.6rem 1rem !important;
+    font-size: 0.85rem !important;
+    min-height: 2.25rem !important;
+    border-radius: 18px !important;
+  }
+  
+  .action-buttons-cell {
+    padding: 0.75rem 0.25rem !important;
+  }
+  
+  .p-datatable th:last-child,
+  .p-datatable td:last-child {
+    width: 140px;
+    min-width: 140px;
+  }
+}
+
+@media (max-width: 480px) {
+  .beautiful-button {
+    .p-button-label {
+      display: none;
+    }
+    
+    .pi {
+      margin-right: 0 !important;
+    }
+    
+    padding: 0.6rem !important;
+    min-width: 2.5rem;
+    width: 2.5rem;
+    border-radius: 50% !important;
+  }
+  
+  .button-group {
+    flex-direction: row;
+    gap: 0.4rem;
+  }
+  
+  .p-datatable th:last-child,
+  .p-datatable td:last-child {
+    width: 120px;
+    min-width: 120px;
+  }
+}

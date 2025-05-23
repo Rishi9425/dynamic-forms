@@ -1,7 +1,7 @@
 // SCSS Variables
 $font-stack: 'Segoe UI', sans-serif;
 $primary-color: #007ad9;
-$info-color: #17a2b8; // Added for show button
+$info-color: #17a2b8;
 $secondary-color: #6c757d;
 $border-color: #ddd;
 $background-light: #f8f9fa;
@@ -26,6 +26,15 @@ $box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     ::ng-deep .p-card-content {
       padding: 16px;
     }
+  }
+
+  // Form title styling
+  .form-title {
+    color: $primary-color;
+    margin-bottom: 24px;
+    font-size: 24px;
+    font-weight: 600;
+    text-align: center;
   }
 
   // Form grid layout improvements
@@ -106,7 +115,7 @@ $box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
       }
     }
     
-    // Submit button
+    // Button styling
     .p-button {
       margin-top: 16px;
       padding: 8px 24px;
@@ -116,29 +125,64 @@ $box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       }
+      
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+        
+        &:hover {
+          transform: none;
+          box-shadow: none;
+        }
+      }
     }
     
-    // Show button styles
-    .p-button-show {
-      background-color: $info-color;
-      border-color: $info-color;
+    // Update/Primary button styles
+    .p-button-primary {
+      background-color: $status-success;
+      border-color: $status-success;
       color: white;
-      margin-right: 12px;
       
-      &:hover {
-        background-color: darken($info-color, 5%);
-        border-color: darken($info-color, 5%);
+      &:hover:not(:disabled) {
+        background-color: darken($status-success, 5%);
+        border-color: darken($status-success, 5%);
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       }
       
       &:focus {
-        box-shadow: 0 0 0 2px rgba($info-color, 0.2);
+        box-shadow: 0 0 0 2px rgba($status-success, 0.2);
+      }
+      
+      &:active:not(:disabled) {
+        background-color: darken($status-success, 10%);
+        border-color: darken($status-success, 10%);
+        transform: translateY(0);
+      }
+    }
+    
+    // Cancel/Secondary button styles
+    .p-button-secondary {
+      background-color: $secondary-color;
+      border-color: $secondary-color;
+      color: white;
+      margin-right: 12px;
+      
+      &:hover {
+        background-color: darken($secondary-color, 5%);
+        border-color: darken($secondary-color, 5%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      
+      &:focus {
+        box-shadow: 0 0 0 2px rgba($secondary-color, 0.2);
       }
       
       &:active {
-        background-color: darken($info-color, 10%);
-        border-color: darken($info-color, 10%);
+        background-color: darken($secondary-color, 10%);
+        border-color: darken($secondary-color, 10%);
         transform: translateY(0);
       }
     }
@@ -160,11 +204,16 @@ $box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   .card {
     padding: 8px;
     
+    .form-title {
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
+    
     .grid > div {
       padding: 8px;
       
       // On mobile, full width for all fields
-      &.col-12.md\:col-6.lg\:col-3 {
+      &.col-12.md\:col-6.lg\:col-4 {
         width: 100%;
       }
     }
@@ -181,7 +230,7 @@ $box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
       }
       
       // Adjust button alignment on mobile
-      .p-button-show,
+      .p-button-secondary,
       .p-button-primary {
         width: 100%;
         margin: 8px 0;
@@ -190,88 +239,6 @@ $box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
       // Stack buttons on mobile
       .flex.justify-content-end {
         flex-direction: column;
-      }
-    }
-  }
-}
-
-// Retain existing PrimeNG table styles
-.p-datatable {
-  font-family: $font-stack;
-  font-size: 14px;
-
-  // Header cells
-  .p-datatable-thead {
-    tr {
-      th {
-        padding: 12px 10px;
-        background-color: $background-light;
-        text-align: left;
-        border-bottom: 1px solid $border-color;
-      }
-    }
-  }
-
-  // Body cells
-  .p-datatable-tbody {
-    tr {
-      td {
-        padding: 10px;
-        vertical-align: middle;
-        border-bottom: 1px solid lighten($border-color, 10%);
-      }
-    }
-  }
-
-  // Filter row styling
-  .p-column-filter {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 10px;
-
-    .p-dropdown,
-    .p-inputtext {
-      width: 100%;
-      max-width: 200px;
-      padding: 6px 10px;
-      font-size: 13px;
-    }
-  }
-
-  // Status badge styling
-  .status-badge {
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
-    color: white;
-
-    &.success {
-      background-color: $status-success;
-    }
-
-    &.warning {
-      background-color: $status-warning;
-      color: #333;
-    }
-
-    &.danger {
-      background-color: $status-danger;
-    }
-  }
-
-  // Responsive behavior
-  @media screen and (max-width: 768px) {
-    font-size: 12px;
-
-    .p-column-filter {
-      flex-direction: column;
-      align-items: flex-start;
-
-      .p-dropdown,
-      .p-inputtext {
-        max-width: 100%;
       }
     }
   }

@@ -10,7 +10,7 @@
         "name": "required",
         "validator": "required",
         "message": "Name is required"
-      }
+      } 
     ]
   },
   {
