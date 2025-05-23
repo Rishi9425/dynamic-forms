@@ -4,7 +4,7 @@ import { DynamicFormComponent } from '../forms/forms.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet,DynamicFormComponent],
+  imports: [DynamicFormComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })

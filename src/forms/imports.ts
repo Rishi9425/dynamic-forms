@@ -1,4 +1,4 @@
-import { FormServiceService } from './../service/form-service.service';
+import { FormService } from './../service/form-service.service';
 // Import PrimeNG modules
     import { AutoFocusModule } from 'primeng/autofocus';
     import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -336,6 +336,7 @@ import { FormServiceService } from './../service/form-service.service';
             OverlayBadgeModule,
           ],
      // providers: [ CustomerService ]
+     providers: [FormService]
     })
     export class ImportsModule {}
     

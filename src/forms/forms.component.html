@@ -1,10 +1,21 @@
+<theme-switcher/>
 <div class="card">
   <p-card>
-    <form [formGroup]="dynamicForm" (ngSubmit)="onSubmit()">
+    <!-- Simple loading spinner -->
+    <div *ngIf="loading" class="flex justify-content-center">
+      <p-progressSpinner></p-progressSpinner>
+    </div>
+
+    <!-- Show form once data is loaded -->
+    <form *ngIf="!loading" [formGroup]="dynamicForm" (ngSubmit)="onSubmit()">
+      <h2 class="form-title">Dynamic Form</h2>
+      
       <div class="grid">
-        <div *ngFor="let control of formStructure" class="col-12 md:col-6 lg:col-3">
-          <!-- Text & Number -->
-          <div class="field mb-3" *ngIf="['text', 'number'].includes(control.type)">
+        <div *ngFor="let control of formStructure" 
+             class="col-12 md:col-6 lg:col-4"
+             [ngClass]="{'lg:col-12': control.type === 'textarea'}">
+          <!-- Text Input (text, email, password, etc) -->
+          <div class="field mb-3" *ngIf="['text', 'email', 'password'].includes(control.type)">
             <label [for]="control.name" class="block mb-2">{{ control.label }}</label>
             <input 
               [type]="control.type" 
@@ -14,6 +25,42 @@
               class="w-full"
               [ngClass]="{'ng-invalid ng-dirty': dynamicForm.get(control.name)?.invalid && dynamicForm.get(control.name)?.touched}"
             />
+            <small 
+              class="p-error block mt-2" 
+              *ngIf="dynamicForm.get(control.name)?.invalid && dynamicForm.get(control.name)?.touched"
+            >
+              {{ getErrorMessage(control) }}
+            </small>
+          </div>
+
+          <!-- Number Input -->
+          <div class="field mb-3" *ngIf="control.type === 'number'">
+            <label [for]="control.name" class="block mb-2">{{ control.label }}</label>
+            <p-inputNumber 
+              [id]="control.name"
+              [formControlName]="control.name" 
+              class="w-full"
+              [ngClass]="{'ng-invalid ng-dirty': dynamicForm.get(control.name)?.invalid && dynamicForm.get(control.name)?.touched}"
+            ></p-inputNumber>
+            <small 
+              class="p-error block mt-2" 
+              *ngIf="dynamicForm.get(control.name)?.invalid && dynamicForm.get(control.name)?.touched"
+            >
+              {{ getErrorMessage(control) }}
+            </small>
+          </div>
+
+          <!-- Date Input -->
+          <div class="field mb-3" *ngIf="control.type === 'date'">
+            <label [for]="control.name" class="block mb-2">{{ control.label }}</label>
+            <p-calendar 
+              [id]="control.name"
+              [formControlName]="control.name" 
+              dateFormat="yy-mm-dd"
+              [showIcon]="true"
+              class="w-full"
+              [ngClass]="{'ng-invalid ng-dirty': dynamicForm.get(control.name)?.invalid && dynamicForm.get(control.name)?.touched}"
+            ></p-calendar>
             <small 
               class="p-error block mt-2" 
               *ngIf="dynamicForm.get(control.name)?.invalid && dynamicForm.get(control.name)?.touched"
@@ -32,6 +79,24 @@
               class="w-full"
               [ngClass]="{'ng-invalid ng-dirty': dynamicForm.get(control.name)?.invalid && dynamicForm.get(control.name)?.touched}"
             ></textarea>
+            <small 
+              class="p-error block mt-2" 
+              *ngIf="dynamicForm.get(control.name)?.invalid && dynamicForm.get(control.name)?.touched"
+            >
+              {{ getErrorMessage(control) }}
+            </small>
+          </div>
+
+          <!-- Checkbox -->
+          <div class="field mb-3" *ngIf="control.type === 'checkbox'">
+            <div class="flex align-items-center">
+              <p-checkbox 
+                [inputId]="control.name" 
+                [binary]="true" 
+                [formControlName]="control.name"
+              ></p-checkbox>
+              <label [for]="control.name" class="ml-2">{{ control.label }}</label>
+            </div>
             <small 
               class="p-error block mt-2" 
               *ngIf="dynamicForm.get(control.name)?.invalid && dynamicForm.get(control.name)?.touched"
@@ -76,6 +141,27 @@
               {{ getErrorMessage(control) }}
             </small>
           </div>
+
+          <!-- Multi-Select -->
+          <div class="field mb-3" *ngIf="control.type === 'multiselect'">
+            <label [for]="control.name" class="block mb-2">{{ control.label }}</label>
+            <p-multiSelect 
+              [id]="control.name"
+              [options]="control.options" 
+              optionLabel="label" 
+              optionValue="value"
+              [formControlName]="control.name"
+              placeholder="-Select Options-"
+              styleClass="w-full"
+              [ngClass]="{'ng-invalid ng-dirty': dynamicForm.get(control.name)?.invalid && dynamicForm.get(control.name)?.touched}"
+            ></p-multiSelect>
+            <small 
+              class="p-error block mt-2" 
+              *ngIf="dynamicForm.get(control.name)?.invalid && dynamicForm.get(control.name)?.touched"
+            >
+              {{ getErrorMessage(control) }}
+            </small>
+          </div>
         </div>
       </div>
 
@@ -83,6 +169,7 @@
         <p-button 
           type="submit" 
           label="Submit" 
+          severity="success"
           styleClass="p-button-primary mt-3"
         ></p-button>
       </div>

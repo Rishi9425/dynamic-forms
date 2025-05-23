@@ -1,73 +1,242 @@
-.form-container {
+// SCSS Variables
+$font-stack: 'Segoe UI', sans-serif;
+$primary-color: #007ad9;
+$secondary-color: #6c757d;
+$border-color: #ddd;
+$background-light: #f8f9fa;
+$status-success: #28a745;
+$status-warning: #ffc107;
+$status-danger: #dc3545;
+$box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+
+// Form styles
+.card {
+  width: 100%;
   max-width: 1200px;
-  margin: 2rem auto;
+  margin: 0 auto;
+  padding: 16px;
+  font-family: $font-stack;
+
+  .p-card {
+    box-shadow: $box-shadow;
+    border-radius: 8px;
+    
+    // Card content padding
+    ::ng-deep .p-card-content {
+      padding: 16px;
+    }
+  }
+
+  // Form grid layout improvements
+  .grid {
+    display: flex;
+    flex-wrap: wrap;
+    margin: -12px; // Negative margin to counteract padding on columns
+    
+    // Individual form columns
+    > div {
+      padding: 12px;
+      box-sizing: border-box;
+      
+      // Ensure fields have proper spacing
+      .field {
+        margin-bottom: 24px;
+        
+        // Field labels
+        label {
+          font-weight: 500;
+          font-size: 14px;
+          color: $secondary-color;
+          margin-bottom: 8px;
+          display: block;
+        }
+        
+        // Error messages
+        .p-error {
+          font-size: 12px;
+          margin-top: 6px;
+        }
+      }
+    }
+  }
+
+  // Form controls styling
+  ::ng-deep {
+    // Input fields
+    .p-inputtext, 
+    .p-dropdown,
+    .p-calendar,
+    .p-inputnumber,
+    .p-multiselect {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid $border-color;
+      border-radius: 4px;
+      transition: all 0.2s;
+      
+      &:hover {
+        border-color: darken($border-color, 10%);
+      }
+      
+      &:focus {
+        border-color: $primary-color;
+        box-shadow: 0 0 0 2px rgba($primary-color, 0.2);
+      }
+      
+      &.ng-invalid.ng-dirty {
+        border-color: $status-danger;
+      }
+    }
+    
+    // Textarea specific styling
+    .p-inputtextarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    
+    // Checkboxes and radio buttons
+    .p-checkbox, .p-radiobutton {
+      margin-right: 8px;
+      
+      .p-checkbox-box.p-highlight,
+      .p-radiobutton-box.p-highlight {
+        background-color: $primary-color;
+        border-color: $primary-color;
+      }
+    }
+    
+    // Submit button
+    .p-button {
+      margin-top: 16px;
+      padding: 8px 24px;
+      transition: all 0.2s;
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+    }
+  }
 }
 
-:host ::ng-deep {
-  /* Card styling */
-  .p-card {
-    border-radius: 8px;
-  }
+// Loading spinner styling
+.flex.justify-content-center {
+  padding: 40px;
   
-  .p-card .p-card-content {
-    padding: 1rem;
+  ::ng-deep .p-progress-spinner {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+// Responsive behavior
+@media screen and (max-width: 768px) {
+  .card {
+    padding: 8px;
+    
+    .grid > div {
+      padding: 8px;
+      
+      // On mobile, full width for all fields
+      &.col-12.md\:col-6.lg\:col-3 {
+        width: 100%;
+      }
+    }
+    
+    ::ng-deep {
+      // Smaller input fields and buttons on mobile
+      .p-inputtext, 
+      .p-dropdown,
+      .p-calendar,
+      .p-inputnumber,
+      .p-multiselect,
+      .p-button {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+// Retain existing PrimeNG table styles
+.p-datatable {
+  font-family: $font-stack;
+  font-size: 14px;
+
+  // Header cells
+  .p-datatable-thead {
+    tr {
+      th {
+        padding: 12px 10px;
+        background-color: $background-light;
+        text-align: left;
+        border-bottom: 1px solid $border-color;
+      }
+    }
   }
 
-  /* Form controls styling */
-  .p-inputtext, .p-dropdown, .p-inputtextarea {
-    width: 100%;
-  }
-  
-  .p-inputtext:enabled:focus, 
-  .p-dropdown:enabled:focus, 
-  .p-inputtextarea:enabled:focus {
-    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px rgba(102, 153, 255, 0.3);
-  }
-
-  /* Required field indicator */
-  .pi-star-fill {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 8px;
-  }
-  
-  /* Form layout */
-  .p-fluid .p-inputtext, 
-  .p-fluid .p-dropdown, 
-  .p-fluid .p-inputtextarea {
-    width: 100%;
+  // Body cells
+  .p-datatable-tbody {
+    tr {
+      td {
+        padding: 10px;
+        vertical-align: middle;
+        border-bottom: 1px solid lighten($border-color, 10%);
+      }
+    }
   }
 
-  /* Error styling */
-  .p-error {
+  // Filter row styling
+  .p-column-filter {
     display: flex;
     align-items: center;
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
+    gap: 6px;
+    padding: 6px 10px;
+
+    .p-dropdown,
+    .p-inputtext {
+      width: 100%;
+      max-width: 200px;
+      padding: 6px 10px;
+      font-size: 13px;
+    }
   }
 
-  /* Radio button styling */
-  .p-radiobutton .p-radiobutton-box.p-highlight {
-    border-color: var(--primary-color);
-    background-color: var(--primary-color);
-  }
-  
-  .p-radiobutton .p-radiobutton-box.p-highlight:not(.p-disabled):hover {
-    border-color: var(--primary-color);
-    background-color: var(--primary-color);
-  }
-
-  /* Button styling */
-  .p-button.p-button-raised {
-    box-shadow: 0 3px 1px -2px rgba(0,0,0,.2), 0 2px 2px 0 rgba(0,0,0,.14), 0 1px 5px 0 rgba(0,0,0,.12);
-    min-width: 150px;
-  }
-  
-  /* Label styling */
-  label {
-    color: var(--text-color);
+  // Status badge styling
+  .status-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
     font-weight: 500;
+    color: white;
+
+    &.success {
+      background-color: $status-success;
+    }
+
+    &.warning {
+      background-color: $status-warning;
+      color: #333;
+    }
+
+    &.danger {
+      background-color: $status-danger;
+    }
+  }
+
+  // Responsive behavior
+  @media screen and (max-width: 768px) {
+    font-size: 12px;
+
+    .p-column-filter {
+      flex-direction: column;
+      align-items: flex-start;
+
+      .p-dropdown,
+      .p-inputtext {
+        max-width: 100%;
+      }
+    }
   }
 }
+
+

@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { ImportsModule } from './imports';
-import { formConfig } from '../domain/form-config';
 import { IFormStructure } from '../domain/forms';
+import { FormService } from '../service/form-service.service';
 
 @Component({
   selector: 'app-forms',
@@ -12,11 +12,33 @@ import { IFormStructure } from '../domain/forms';
   styleUrl: './forms.component.scss'
 })
 export class DynamicFormComponent implements OnInit {
-  formStructure: IFormStructure[] = formConfig;
+  formStructure: IFormStructure[] = [];
   dynamicForm: FormGroup;
+  loading = true;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private formService: FormService) {
+    // Initialize with empty form group - we'll populate it after data loads
+    this.dynamicForm = this.fb.group({});
+  }
+  
+  ngOnInit(): void {
+    // Simple way to get form data from service
+    this.formService.getFormStructure()
+      .then((data) => {
+        this.formStructure = data;
+        this.initForm();
+        this.loading = false;
+      })
+      .catch((err) => {
+        console.error('Error loading form data:', err);
+        this.loading = false;
+      });
+  }
+
+  // Initialize the form once we have the form structure
+  private initForm(): void {
     let formGroup: Record<string, any> = {};
+    
     this.formStructure.forEach((control) => {
       let controlValidators: any[] = [];
 
@@ -26,13 +48,23 @@ export class DynamicFormComponent implements OnInit {
             name: string;
             validator: string;
             message: string;
+            value?: any;
           }) => {
             if (validation.validator === 'required')
               controlValidators.push(Validators.required);
             if (validation.validator === 'email')
               controlValidators.push(Validators.email);
+            if (validation.validator === 'minLength' && validation.value)
+              controlValidators.push(Validators.minLength(validation.value));
+            if (validation.validator === 'maxLength' && validation.value)
+              controlValidators.push(Validators.maxLength(validation.value));
+            if (validation.validator === 'pattern' && validation.value)
+              controlValidators.push(Validators.pattern(validation.value));
+            if (validation.validator === 'min' && validation.value !== undefined)
+              controlValidators.push(Validators.min(validation.value));
+            if (validation.validator === 'max' && validation.value !== undefined)
+              controlValidators.push(Validators.max(validation.value));
             // Add more built-in validators as needed
-              
           }
         );
       }
@@ -41,11 +73,6 @@ export class DynamicFormComponent implements OnInit {
     });
 
     this.dynamicForm = this.fb.group(formGroup);
-  }
-  
-  ngOnInit(): void {
-    // Optionally, you can reset or initialize the form here if needed
-    // For now, no additional initialization is required
   }
 
   getErrorMessage(control: any) {
@@ -72,5 +99,6 @@ export class DynamicFormComponent implements OnInit {
       return;
     }
     console.log(this.dynamicForm.value);
+    
   }
 }
