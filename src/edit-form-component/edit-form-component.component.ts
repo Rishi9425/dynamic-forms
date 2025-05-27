@@ -232,7 +232,7 @@ export class EditFormComponentComponent implements OnInit {
       next: (response) => {
         console.log('Form updated successfully:', response);
         this.submitting = false;
-        this.router.navigate(['/cards']);
+        this.router.navigate(['/dashboard' , this.formId]);
       },
       error: (error) => {
         console.error('Error updating form:', error);

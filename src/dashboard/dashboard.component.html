@@ -1,4 +1,3 @@
-
 <div class="dashboard-container">
   <h2>Welcome to Your Dashboard!</h2>
 
@@ -45,10 +44,15 @@
         <label><strong>Skills:</strong></label>
         <span>{{ getDisplayValue('skills', userData.skills) }}</span>
       </div>
+      <div class="button-group mt-3">
+        <button class="btn btn-primary me-2" (click)="onUpdate(userData)">Update</button>
+        <button class="btn btn-danger" (click)="onDelete()">Delete</button>
       </div>
+    </div>
   </div>
 
   <div *ngIf="!loading && !error && !userData">
     <p>No user data found. Please ensure you are logged in correctly.</p>
+            <a (click)="Nouser()" class="link" >Login</a>
   </div>
 </div>

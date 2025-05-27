@@ -27,11 +27,12 @@ export class FormService {
     this.currentUserId = userId;
     localStorage.setItem('current_user_id', userId);
   }
-
-  getCurrentUserId(): string | null {
-    return this.currentUserId;
+  getToken(): string | null {
+    return this.token;
   }
-
+  getCurrentUserId(): number {
+    return this.currentUserId ? Number(this.currentUserId) : 0;
+}
   clearToken(): void {
     this.token = null;
     this.currentUserId = null;
@@ -62,14 +63,17 @@ export class FormService {
   getFormsFromBackend(): Observable<any[]> {
     return this.http.get<any[]>(this.apiUrl, { headers: this.getAuthHeaders() });
   }
+//based on id
 
-  getFormByUserId(userId: string): Observable<any> {
-    const id = parseInt(userId, 10);
-    if (isNaN(id)) {
-        console.error('Invalid user ID provided for getFormByUserId:', userId);
+
+
+  getFormByUserId(Id: number): Observable<any> {
+  
+    if (isNaN(Id)) {
+        console.error('Invalid user ID provided for getFormByUserId:', Id);
         return new Observable(observer => observer.error('Invalid user ID'));
     }
-    return this.http.get<any>(`${this.apiUrl}/${id}`, {
+    return this.http.get<any>(`${this.apiUrl}/${Id}`, {
       headers: this.getAuthHeaders()
     });
   }
@@ -111,7 +115,7 @@ export class FormService {
           console.log('Token set from login response.');
         }
         // This is crucial: check for 'userId' from the backend's login response
-        const receivedUserId = response.userId || response.id || response.user?.id;
+        const receivedUserId = response.userId
         if (receivedUserId) {
           this.setCurrentUserId(receivedUserId.toString());
           console.log('User ID stored from login response:', receivedUserId);

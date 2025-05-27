@@ -43,6 +43,7 @@
             [disabled]="loginForm.invalid || loading"
             [loading]="loading"
             styleClass="login-button"
+            (click)="onSubmit()"
           ></p-button>
         </div>
 

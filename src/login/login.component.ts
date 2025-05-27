@@ -34,18 +34,25 @@ export class LoginComponent implements OnInit {
       this.loginForm.markAllAsTouched();
       return;
     }
+    
     this.loading = true;
+    this.errorMessage = ''; // Clear any previous error messages
+    
     this.formService.login(this.loginForm.value).subscribe({
       next: (response) => {
+        console.log('Login response:', response);
         this.loading = false;
-        if (response.token) {
-          this.formService.setToken(response.token);
-        }
-        if (response.userId || response.id || response.user?.id) {
-          const userId = response.userId || response.id || response.user.id;
-          this.router.navigate(['/cards', userId]);
+        
+        // The FormService already handles setting the token and userId
+        // Just get the current user ID from the service
+        const currentUserId = this.formService.getCurrentUserId();
+        
+        if (currentUserId && currentUserId > 0) {
+          console.log('Navigating to dashboard with user ID:', currentUserId);
+          this.router.navigate(['/dashboard', currentUserId]);
         } else {
-          this.router.navigate(['/cards']);
+          console.error('No valid user ID found after login');
+          this.errorMessage = 'Login successful but user ID not found. Please try again.';
         }
       },
       error: (error) => {

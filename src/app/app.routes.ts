@@ -8,12 +8,12 @@ import { DashboardComponent } from '../dashboard/dashboard.component';
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'register', component: DynamicFormComponent },
-  { path: 'cards/:id', component: CardsComponent  }, 
     { path: 'cards', component: CardsComponent  }, 
   { path: '', component: DynamicFormComponent },
   { path: 'edit/:id', component: EditFormComponentComponent },
+  {path: 'dashboard/:id', component: DashboardComponent},
   { path: '**', redirectTo: '/login' },
-  {path: 'dashnoard', component: DashboardComponent}
+  
 ];
 
 // app.routes.ts
