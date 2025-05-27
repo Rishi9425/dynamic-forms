@@ -1,16 +1,19 @@
 import { Routes } from '@angular/router';
+import { LoginComponent } from '../login/login.component';
 import { CardsComponent } from '../cards/cards.component';
-import { DynamicFormComponent } from '../forms/forms.component';
+import { DynamicFormComponent } from '../forms/forms.component'; // Your registration form
 import { EditFormComponentComponent } from '../edit-form-component/edit-form-component.component';
+import { DashboardComponent } from '../dashboard/dashboard.component';
 
 export const routes: Routes = [
-
-
-    { path: 'cards', component: CardsComponent },
-    {path: '', component: DynamicFormComponent},
-
-   {
-  path: 'edit/:id',
-  component: EditFormComponentComponent
-}
+  { path: 'login', component: LoginComponent },
+  { path: 'register', component: DynamicFormComponent },
+  { path: 'cards/:id', component: CardsComponent  }, 
+    { path: 'cards', component: CardsComponent  }, 
+  { path: '', component: DynamicFormComponent },
+  { path: 'edit/:id', component: EditFormComponentComponent },
+  { path: '**', redirectTo: '/login' },
+  {path: 'dashnoard', component: DashboardComponent}
 ];
+
+// app.routes.ts

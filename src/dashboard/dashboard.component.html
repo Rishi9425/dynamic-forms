@@ -1,0 +1,54 @@
+
+<div class="dashboard-container">
+  <h2>Welcome to Your Dashboard!</h2>
+
+  <div *ngIf="loading" class="loading-message">
+    <p>Loading your data...</p>
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    <p>{{ error }}</p>
+  </div>
+
+  <div *ngIf="!loading && !error && userData" class="user-details">
+    <h3>Your Information</h3>
+    <div class="card p-4">
+      <div class="form-group">
+        <label><strong>Name:</strong></label>
+        <span>{{ userData.name }}</span>
+      </div>
+      <div class="form-group">
+        <label><strong>Email:</strong></label>
+        <span>{{ userData.email }}</span>
+      </div>
+      <div class="form-group">
+        <label><strong>Description:</strong></label>
+        <span>{{ userData.description }}</span>
+      </div>
+      <div class="form-group">
+        <label><strong>Birthday:</strong></label>
+        <span>{{ userData.birthday | date:'mediumDate' }}</span>
+      </div>
+      <div class="form-group">
+        <label><strong>Gender:</strong></label>
+        <span>{{ getDisplayValue('gender', userData.gender) }}</span>
+      </div>
+      <div class="form-group">
+        <label><strong>Age:</strong></label>
+        <span>{{ userData.age }}</span>
+      </div>
+      <div class="form-group">
+        <label><strong>Country:</strong></label>
+        <span>{{ getDisplayValue('country', userData.country) }}</span>
+      </div>
+      <div class="form-group">
+        <label><strong>Skills:</strong></label>
+        <span>{{ getDisplayValue('skills', userData.skills) }}</span>
+      </div>
+      </div>
+  </div>
+
+  <div *ngIf="!loading && !error && !userData">
+    <p>No user data found. Please ensure you are logged in correctly.</p>
+  </div>
+</div>

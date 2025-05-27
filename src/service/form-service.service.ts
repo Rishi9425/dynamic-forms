@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { IFormStructure } from '../domain/forms';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable, switchMap, tap } from 'rxjs';
 import { data } from '../assets/data.json';
 
 @Injectable({
@@ -9,25 +9,139 @@ import { data } from '../assets/data.json';
 })
 export class FormService {
   private formtype = data;
-  private apiUrl = 'http://localhost:5263/api/forms';
+  private apiUrl = 'https://localhost:5263/api/forms';
+  private token: string | null = null;
+  private currentUserId: string | null = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    this.token = localStorage.getItem('jwt_token');
+    this.currentUserId = localStorage.getItem('current_user_id');
+  }
+
+  setToken(token: string): void {
+    this.token = token;
+    localStorage.setItem('jwt_token', token);
+  }
+
+  setCurrentUserId(userId: string): void {
+    this.currentUserId = userId;
+    localStorage.setItem('current_user_id', userId);
+  }
+
+  getCurrentUserId(): string | null {
+    return this.currentUserId;
+  }
+
+  clearToken(): void {
+    this.token = null;
+    this.currentUserId = null;
+    localStorage.removeItem('jwt_token');
+    localStorage.removeItem('current_user_id');
+  }
+
+  private getAuthHeaders(): HttpHeaders {
+    if (this.token) {
+      return new HttpHeaders({
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.token}`,
+      });
+    }
+    return new HttpHeaders({
+      'Content-Type': 'application/json',
+    });
+  }
+
+  isAuthenticated(): boolean {
+    return !!this.token && !!this.currentUserId; // Check both token and userId for authentication
+  }
 
   getFormStructure(): Promise<IFormStructure[]> {
     return Promise.resolve(this.formtype);
   }
 
   getFormsFromBackend(): Observable<any[]> {
-    return this.http.get<any[]>(this.apiUrl);
+    return this.http.get<any[]>(this.apiUrl, { headers: this.getAuthHeaders() });
   }
 
+  getFormByUserId(userId: string): Observable<any> {
+    const id = parseInt(userId, 10);
+    if (isNaN(id)) {
+        console.error('Invalid user ID provided for getFormByUserId:', userId);
+        return new Observable(observer => observer.error('Invalid user ID'));
+    }
+    return this.http.get<any>(`${this.apiUrl}/${id}`, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
+  // Modified submitFormData to ensure userId is captured
   submitFormData(formData: any): Observable<any> {
     const transformedData = this.transformFormData(formData);
 
     console.log('Original form data:', formData);
     console.log('Transformed data for backend:', transformedData);
 
-    return this.http.post<any>(this.apiUrl, transformedData);
+    // Register first
+    return this.http.post<any>(`${this.apiUrl}/register`, transformedData).pipe(
+      // The tap here will capture the 'id' from the registration response
+      tap(registerResponse => {
+        if (registerResponse.id) {
+          this.setCurrentUserId(registerResponse.id.toString());
+          console.log('User ID stored from registration:', registerResponse.id);
+        }
+      }),
+      // Then immediately try to log in with the provided credentials
+      switchMap(registerResponse => {
+        console.log('Registration successful, attempting auto-login.');
+        const loginCredentials = {
+          email: formData.email,
+          password: formData.password
+        };
+        return this.login(loginCredentials); // This 'login' call already sets token and userId
+      })
+    );
+  }
+
+  // Modified login to ensure userId is captured
+  login(credentials: { email: string; password: string }): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/login`, credentials).pipe(
+      tap((response) => {
+        if (response.token) {
+          this.setToken(response.token);
+          console.log('Token set from login response.');
+        }
+        // This is crucial: check for 'userId' from the backend's login response
+        const receivedUserId = response.userId || response.id || response.user?.id;
+        if (receivedUserId) {
+          this.setCurrentUserId(receivedUserId.toString());
+          console.log('User ID stored from login response:', receivedUserId);
+        } else {
+          console.warn('Login response did not contain a user ID (userId, id, or user.id).');
+        }
+      })
+    );
+  }
+
+  // registerAndLogin method is now redundant as submitFormData handles this.
+  // You can remove it or keep it if you have other use cases.
+  registerAndLogin(formData: any): Observable<any> {
+    const transformedData = this.transformFormData(formData);
+
+    return this.http.post<any>(`${this.apiUrl}/register`, transformedData).pipe(
+      tap((registerResponse) => {
+        if (registerResponse.id) {
+          this.setCurrentUserId(registerResponse.id.toString());
+        }
+      }),
+      switchMap((registerResponse) => {
+        const loginCredentials = {
+          email: formData.email,
+          password: formData.password
+        };
+
+        return this.login(loginCredentials);
+      })
+    );
   }
 
   updateFormData(id: number, formData: any): Observable<any> {
@@ -35,78 +149,73 @@ export class FormService {
       Id: id,
       ...this.transformFormData(formData),
     };
-
-    return this.http.put<any>(`${this.apiUrl}/${id}`, transformedData);
+    return this.http.put<any>(`${this.apiUrl}/${id}`, transformedData, {
+      headers: this.getAuthHeaders()
+    });
   }
 
   deleteFormData(id: number): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/${id}`);
+    return this.http.delete<any>(`${this.apiUrl}/${id}`, {
+      headers: this.getAuthHeaders()
+    });
   }
 
   private transformFormData(formData: any): any {
     const transformed: any = {};
 
-    // Get form structure for dynamic processing
-    const formStructure = this.formtype;
+    const fieldMappings: { [key: string]: string } = {
+      'name': 'Name',
+      'email': 'Email',
+      'description': 'Description',
+      'birthday': 'Birthday',
+      'gender': 'Gender',
+      'age': 'Age',
+      'country': 'Country',
+      'skills': 'Skills',
+      'password': 'Password'
+    };
 
-    for (const field of formStructure) {
-      const fieldName = field.name;
-      const fieldValue = formData[fieldName];
+    for (const [angularField, backendField] of Object.entries(fieldMappings)) {
+      const fieldValue = formData[angularField];
+      const fieldConfig = this.getFieldConfig(angularField);
 
-      // Transform field name to PascalCase for backend
-      const backendFieldName = this.toPascalCase(fieldName);
+      if (fieldValue !== undefined && fieldValue !== null) {
+        switch (fieldConfig?.type) {
+          case 'text':
+          case 'email':
+          case 'password':
+          case 'textarea':
+            transformed[backendField] = String(fieldValue || '');
+            break;
 
-      switch (field.type) {
-        case 'text':
-        case 'email':
-        case 'password':
-        case 'textarea':
-          transformed[backendFieldName] = fieldValue || '';
-          break;
+          case 'number':
+            transformed[backendField] = this.parseNumber(fieldValue);
+            break;
 
-        case 'number':
-          transformed[backendFieldName] = this.parseNumber(fieldValue);
-          break;
+          case 'date':
+            transformed[backendField] = this.formatDateForBackend(fieldValue);
+            break;
 
-        case 'date':
-          transformed[backendFieldName] = this.formatDateForBackend(fieldValue);
-          break;
+          case 'radio':
+          case 'select':
+            transformed[backendField] = this.convertOptionToString(fieldValue, fieldConfig);
+            break;
 
-        case 'radio':
-          transformed[backendFieldName] = this.convertOptionToString(
-            fieldValue,
-            field
-          );
-          break;
+          case 'multiselect':
+            transformed[backendField] = this.convertMultiselectToString(fieldValue, fieldConfig);
+            break;
 
-        case 'select':
-          transformed[backendFieldName] = this.convertOptionToString(
-            fieldValue,
-            field
-          );
-          break;
+          case 'checkbox':
+            transformed[backendField] = Boolean(fieldValue);
+            break;
 
-        case 'multiselect':
-          transformed[backendFieldName] = this.convertMultiselectToString(
-            fieldValue,
-            field
-          );
-          break;
-
-        case 'checkbox':
-          transformed[backendFieldName] = Boolean(fieldValue);
-          break;
-
-        default:
-          transformed[backendFieldName] = fieldValue;
+          default:
+            transformed[backendField] = fieldValue;
+            break;
+        }
       }
     }
-
     return transformed;
-  }
-
-  private toPascalCase(str: string): string {
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
   }
 
   private parseNumber(value: any): number {
@@ -130,27 +239,26 @@ export class FormService {
       date = new Date();
     }
 
+    if (isNaN(date.getTime())) {
+      date = new Date();
+    }
+
     return date.toISOString().split('T')[0];
   }
 
   private convertOptionToString(value: any, field: IFormStructure): string {
-    console.log(`Converting ${field.name}:`, value, typeof value);
-
     if (!field.options || field.options.length === 0) {
       return String(value || '');
     }
 
-    // Find the option that matches the value
     const matchingOption = field.options.find(
-      (option) =>
-        option.value === value || String(option.value) === String(value)
+      (option) => option.value === value || String(option.value) === String(value)
     );
 
     if (matchingOption) {
       return matchingOption.label;
     }
 
-    // If no match found, try to find by label (case insensitive)
     if (typeof value === 'string') {
       const matchingByLabel = field.options.find(
         (option) => option.label.toLowerCase() === value.toLowerCase()
@@ -159,15 +267,10 @@ export class FormService {
         return matchingByLabel.label;
       }
     }
-
-    // Return default (first option) if no match found
-    return field.options[0]?.label || String(value || '');
+    return '';
   }
 
-  private convertMultiselectToString(
-    value: any,
-    field: IFormStructure
-  ): string {
+  private convertMultiselectToString(value: any, field: IFormStructure): string {
     if (!value || !field.options || field.options.length === 0) {
       return '';
     }
@@ -179,8 +282,7 @@ export class FormService {
     if (Array.isArray(value)) {
       const labels = value.map((val) => {
         const matchingOption = field.options!.find(
-          (option) =>
-            option.value === val || String(option.value) === String(val)
+          (option) => option.value === val || String(option.value) === String(val)
         );
         return matchingOption ? matchingOption.label : String(val);
       });
@@ -199,9 +301,14 @@ export class FormService {
     return field?.options || [];
   }
 
-  // Helper method to get default value for a field
   getFieldDefaultValue(fieldName: string): any {
     const field = this.getFieldConfig(fieldName);
     return field?.value;
+  }
+
+  getFormById(id: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${id}`, {
+      headers: this.getAuthHeaders()
+    });
   }
 }

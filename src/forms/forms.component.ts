@@ -112,9 +112,16 @@ export class DynamicFormComponent implements OnInit {
     });
   }
 
-  show(): void {
+ show(): void {
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'; // Or use your AuthService
+  if (isLoggedIn) {
     this.router.navigate(['/cards']);
+  } else {
+    // Optionally, show a message or redirect to login
+    console.warn('User not logged in. Redirecting to login page.');
+    this.router.navigate(['/login']);
   }
+}
 
   loadFormsFromBackend(): void {
     this.formService.getFormsFromBackend().subscribe({

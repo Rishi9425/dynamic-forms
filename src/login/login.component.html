@@ -1,0 +1,63 @@
+<div class="login-container">
+  <div class="login-card">
+    <p-card header="Login" styleClass="login-form-card">
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="form-field">
+          <label for="email">Email</label>
+          <input 
+            pInputText 
+            id="email" 
+            formControlName="email" 
+            placeholder="Enter your email"
+            [class.ng-invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+          />
+          <small 
+            class="error-message" 
+            *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+          >
+            Please enter a valid email address
+          </small>
+        </div>
+
+        <div class="form-field">
+          <label for="password">Password</label>
+          <p-password 
+            formControlName="password" 
+            [toggleMask]="true"
+            placeholder="Enter your password"
+            [feedback]="false"
+            [class.ng-invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+          ></p-password>
+          <small 
+            class="error-message" 
+            *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+          >
+            Password is required
+          </small>
+        </div>
+
+        <div class="form-actions">
+          <p-button 
+            type="submit" 
+            label="Login" 
+            [disabled]="loginForm.invalid || loading"
+            [loading]="loading"
+            styleClass="login-button"
+          ></p-button>
+        </div>
+
+        <div class="register-link">
+          <p>Don't have an account? 
+            <a (click)="goToRegister()" class="link">Register here</a>
+          </p>
+        </div>
+      </form>
+
+      <p-messages 
+        *ngIf="errorMessage" 
+        severity="error" 
+        [value]="[{severity:'error', summary:'Login Failed', detail: errorMessage}]"
+      ></p-messages>
+    </p-card>
+  </div>
+</div>

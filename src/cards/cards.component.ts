@@ -29,11 +29,20 @@ export class CardsComponent implements OnInit {
       { field: 'email', header: 'Email' },
       { field: 'description', header: 'Description' },
       { field: 'age', header: 'Age' },
-      { field: 'date', header: 'DOB' },
+      { field: 'birthday', header: 'DOB' }, // Changed from 'date' to 'birthday' to match backend
       { field: 'gender', header: 'Gender' },
       { field: 'country', header: 'Country' },
       { field: 'skills', header: 'Skills' },
+      // Note: Password is not included in display columns for security
     ];
+
+    // Check authentication before loading data
+    if (!this.formService.isAuthenticated()) {
+      console.warn('User not authenticated, redirecting to login');
+      // Uncomment the next line if you have a login route
+      // this.router.navigate(['/login']);
+      return;
+    }
 
     this.loadFormsData();
   }
@@ -42,13 +51,25 @@ export class CardsComponent implements OnInit {
     this.loading = true;
     this.formService.getFormsFromBackend().subscribe({
       next: (data) => {
-        this.products = data;
+        // Filter out password field from display data for security
+        this.products = data.map(item => {
+          const { password, ...displayData } = item;
+          return displayData;
+        });
         this.loading = false;
-        console.log('Forms data loaded:', data);
+        console.log('Forms data loaded:', this.products);
       },
       error: (error) => {
         console.error('Error loading forms data:', error);
         this.loading = false;
+        
+        // Handle authentication errors
+        if (error.status === 401) {
+          console.error('Authentication failed. Token may be expired or invalid.');
+          this.formService.clearToken();
+          // Uncomment the next line if you have a login route
+          // this.router.navigate(['/login']);
+        }
       },
     });
   }
@@ -61,15 +82,10 @@ export class CardsComponent implements OnInit {
       return;
     }
 
-    // console.log('Updating form with ID:', formId);
-    // console.log('Product data:', product);
-
     this.router.navigate(['/edit', formId]);
   }
 
   onDelete(product: any) {
-    // console.log('Delete clicked:', product);
-
     const id = product.id;
 
     if (!id) {
@@ -85,6 +101,12 @@ export class CardsComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error deleting form:', error);
+          if (error.status === 401) {
+            console.error('Authentication failed during deletion.');
+            this.formService.clearToken();
+            // Uncomment the next line if you have a login route
+            // this.router.navigate(['/login']);
+          }
         },
       });
     }
