@@ -1,0 +1,352 @@
+// Variables for consistent spacing and styling
+:host {
+  --navbar-padding: 1rem 1.5rem;
+  --navbar-gap: 1rem;
+  --item-padding: 0.75rem 1rem;
+  --border-radius: 0.375rem;
+  --transition: all 0.2s ease-in-out;
+  --dropdown-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --dropdown-width: 200px;
+  --z-dropdown: 1000;
+}
+
+// Main navbar container
+.card {
+  border-radius: var(--border-radius);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+// PrimeNG Menubar customizations
+.p-menubar {
+  background-color: var(--surface-card);
+  padding: var(--navbar-padding);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--surface-border);
+  
+  // Logo/Brand section
+  .p-menubar-start {
+    display: flex;
+    align-items: center;
+    margin-right: var(--navbar-gap);
+    
+    svg {
+      height: 35px;
+      width: auto;
+      transition: var(--transition);
+      
+      &:hover {
+        transform: scale(1.05);
+      }
+    }
+  }
+  
+  // Menu items section
+  .p-menubar-root-list {
+    display: flex;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 0.5rem;
+    flex-grow: 1;
+  }
+  
+  .p-menubar-item {
+    .p-menubar-item-link {
+      display: flex;
+      align-items: center;
+      padding: var(--item-padding);
+      color: var(--text-color);
+      text-decoration: none;
+      border-radius: var(--border-radius);
+      transition: var(--transition);
+      font-weight: 500;
+      
+      &:hover,
+      &:focus {
+        background-color: var(--surface-hover);
+        color: var(--primary-color);
+        transform: translateY(-1px);
+      }
+      
+      .p-menuitem-icon {
+        margin-right: 0.5rem;
+        font-size: 1rem;
+      }
+      
+      // Badge styling
+      .p-badge {
+        &.ml-auto {
+          margin-left: auto;
+        }
+        
+        &.ml-2 {
+          margin-left: 0.5rem;
+        }
+      }
+      
+      // Shortcut styling
+      .border {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        margin-left: auto;
+        border-radius: calc(var(--border-radius) / 2);
+        background-color: var(--surface-100);
+        color: var(--text-color-secondary);
+      }
+      
+      // Dropdown arrow
+      .pi {
+        margin-left: auto;
+        font-size: 0.875rem;
+        transition: var(--transition);
+        
+        &.pi-angle-down,
+        &.pi-angle-right {
+          color: var(--text-color-secondary);
+        }
+      }
+    }
+  }
+  
+  // End section (auth buttons/user menu)
+  .p-menubar-end {
+    display: flex;
+    align-items: center;
+    gap: var(--navbar-gap);
+    position: relative;
+  }
+}
+
+// Authentication section styles
+.auth-section {
+  &.logged-out {
+    .p-button {
+      font-weight: 500;
+      border-radius: var(--border-radius);
+      transition: var(--transition);
+      
+      &.p-button-outlined {
+        border: 2px solid var(--primary-color);
+        
+        &:hover {
+          background-color: var(--primary-color);
+          transform: translateY(-1px);
+        }
+      }
+    }
+  }
+  
+  &.logged-in {
+    position: relative;
+  }
+}
+
+// User avatar and dropdown
+.user-menu {
+  position: relative;
+  
+  .p-avatar {
+    cursor: pointer;
+    transition: var(--transition);
+    border: 2px solid transparent;
+    font-weight: 600;
+    
+    &:hover {
+      border-color: var(--primary-color);
+      transform: scale(1.1);
+    }
+    
+    &:focus {
+      outline: 2px solid var(--primary-color);
+      outline-offset: 2px;
+    }
+  }
+}
+
+// User dropdown menu
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  min-width: var(--dropdown-width);
+  background-color: var(--surface-card);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--border-radius);
+  box-shadow: var(--dropdown-shadow);
+  z-index: var(--z-dropdown);
+  overflow: hidden;
+  
+  // Animation
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+  transition: var(--transition);
+  pointer-events: none;
+  
+  &.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+  
+  // Arrow pointer (optional)
+  &::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    right: 20px;
+    width: 12px;
+    height: 12px;
+    background-color: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-bottom: none;
+    border-right: none;
+    transform: rotate(45deg);
+  }
+  
+  .dropdown-menu {
+    list-style: none;
+    margin: 0;
+    padding: 0.5rem 0;
+    
+    li {
+      &:not(:last-child) {
+        border-bottom: 1px solid var(--surface-100);
+      }
+      
+      a,
+      button {
+        display: block;
+        width: 100%;
+        padding: 0.75rem 1rem;
+        color: var(--text-color);
+        text-decoration: none;
+        background: none;
+        border: none;
+        text-align: left;
+        cursor: pointer;
+        transition: var(--transition);
+        font-size: 0.875rem;
+        font-weight: 500;
+        
+        &:hover,
+        &:focus {
+          background-color: var(--surface-hover);
+          color: var(--primary-color);
+          padding-left: 1.25rem;
+        }
+        
+        &.danger {
+          color: var(--red-500);
+          
+          &:hover {
+            background-color: var(--red-50);
+            color: var(--red-600);
+          }
+        }
+      }
+      
+      .p-button {
+        border-radius: 0;
+        font-size: 0.875rem;
+        
+        &.p-button-danger {
+          background-color: transparent;
+          border: none;
+          color: var(--red-500);
+          
+          &:hover {
+            background-color: var(--red-50);
+            color: var(--red-600);
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  :host {
+    --navbar-padding: 0.75rem 1rem;
+    --navbar-gap: 0.75rem;
+    --dropdown-width: 180px;
+  }
+  
+  .p-menubar {
+    .p-menubar-start {
+      margin-right: 0.5rem;
+      
+      svg {
+        height: 30px;
+      }
+    }
+    
+    .p-menubar-item {
+      .p-menubar-item-link {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+      }
+    }
+  }
+  
+  .user-dropdown {
+    right: -10px;
+    min-width: calc(var(--dropdown-width) - 20px);
+  }
+}
+
+@media (max-width: 480px) {
+  :host {
+    --navbar-padding: 0.5rem 0.75rem;
+  }
+  
+  .p-menubar {
+    flex-wrap: wrap;
+    
+    .p-menubar-end {
+      gap: 0.5rem;
+    }
+  }
+  
+  .user-dropdown {
+    right: 0;
+    left: 0;
+    min-width: auto;
+    margin: 0 0.75rem;
+  }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  :host {
+    --dropdown-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+  }
+}
+
+// Focus states for accessibility
+.p-menubar-item-link,
+.p-avatar,
+.user-dropdown a,
+.user-dropdown button {
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+  }
+}
+
+// Animation for smooth interactions
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.user-dropdown.show {
+  animation: fadeInUp 0.2s ease-out;
+}

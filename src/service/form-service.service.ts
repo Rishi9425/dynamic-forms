@@ -12,10 +12,12 @@ export class FormService {
   private apiUrl = 'https://localhost:5263/api/forms';
   private token: string | null = null;
   private currentUserId: string | null = null;
+  private username: string | null = null; // Add username storage
 
   constructor(private http: HttpClient) {
     this.token = localStorage.getItem('jwt_token');
     this.currentUserId = localStorage.getItem('current_user_id');
+    this.username = localStorage.getItem('username'); // Initialize username from localStorage
   }
 
   setToken(token: string): void {
@@ -27,17 +29,40 @@ export class FormService {
     this.currentUserId = userId;
     localStorage.setItem('current_user_id', userId);
   }
+
+  // Add method to set username
+  setUsername(Username: string): void {
+    this.username = Username;
+    localStorage.setItem('username', Username);
+    console.log(Username);
+  }
+
+  // Add method to get username
+  getUsername(): string | null {
+    return this.username || localStorage.getItem('username');
+  }
+
+  // Add method to get first letter of username
+  getUserInitial(): string {
+    const currentUsername = this.getUsername();
+    return currentUsername ? currentUsername.charAt(0).toUpperCase() : '';
+  }
+
   getToken(): string | null {
     return this.token;
   }
+
   getCurrentUserId(): number {
     return this.currentUserId ? Number(this.currentUserId) : 0;
-}
+  }
+
   clearToken(): void {
     this.token = null;
     this.currentUserId = null;
+    this.username = null; // Clear username as well
     localStorage.removeItem('jwt_token');
     localStorage.removeItem('current_user_id');
+    localStorage.removeItem('username'); // Remove username from localStorage
   }
 
   private getAuthHeaders(): HttpHeaders {
@@ -53,7 +78,17 @@ export class FormService {
   }
 
   isAuthenticated(): boolean {
-    return !!this.token && !!this.currentUserId; // Check both token and userId for authentication
+    return !!this.token && !!this.currentUserId;
+  }
+
+
+
+  
+  // New method for changing password
+  changePassword(passwordData: { email: string; newPassword: string; confirmPassword: string }): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/change-password`, passwordData, {
+      headers: this.getAuthHeaders()
+    });
   }
 
   getFormStructure(): Promise<IFormStructure[]> {
@@ -63,98 +98,96 @@ export class FormService {
   getFormsFromBackend(): Observable<any[]> {
     return this.http.get<any[]>(this.apiUrl, { headers: this.getAuthHeaders() });
   }
-//based on id
-
-
 
   getFormByUserId(Id: number): Observable<any> {
-  
     if (isNaN(Id)) {
-        console.error('Invalid user ID provided for getFormByUserId:', Id);
-        return new Observable(observer => observer.error('Invalid user ID'));
+      console.error('Invalid user ID provided for getFormByUserId:', Id);
+      return new Observable(observer => observer.error('Invalid user ID'));
     }
     return this.http.get<any>(`${this.apiUrl}/${Id}`, {
       headers: this.getAuthHeaders()
     });
   }
 
-  // Modified submitFormData to ensure userId is captured
-  submitFormData(formData: any): Observable<any> {
-    const transformedData = this.transformFormData(formData);
-
-    console.log('Original form data:', formData);
-    console.log('Transformed data for backend:', transformedData);
-
-    // Register first
-    return this.http.post<any>(`${this.apiUrl}/register`, transformedData).pipe(
-      // The tap here will capture the 'id' from the registration response
-      tap(registerResponse => {
-        if (registerResponse.id) {
-          this.setCurrentUserId(registerResponse.id.toString());
-          console.log('User ID stored from registration:', registerResponse.id);
-        }
-      }),
-      // Then immediately try to log in with the provided credentials
-      switchMap(registerResponse => {
-        console.log('Registration successful, attempting auto-login.');
-        const loginCredentials = {
-          email: formData.email,
-          password: formData.password
-        };
-        return this.login(loginCredentials); // This 'login' call already sets token and userId
-      })
-    );
+  // Updated register method - only requires username, email, password, and optional name
+  register(registrationData: { username: string; email: string; password: string; name?: string }): Observable<any> {
+    console.log('Registration data:', registrationData);
+    return this.http.post<any>(`${this.apiUrl}/register`, registrationData);
   }
 
-  // Modified login to ensure userId is captured
-  login(credentials: { email: string; password: string }): Observable<any> {
+  // Updated login method - uses username instead of email
+  login(credentials: { username: string; password: string }): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/login`, credentials).pipe(
       tap((response) => {
         if (response.token) {
           this.setToken(response.token);
           console.log('Token set from login response.');
         }
-        // This is crucial: check for 'userId' from the backend's login response
-        const receivedUserId = response.userId
-        if (receivedUserId) {
-          this.setCurrentUserId(receivedUserId.toString());
-          console.log('User ID stored from login response:', receivedUserId);
+        
+        if (response.userId) {
+          this.setCurrentUserId(response.userId.toString());
+          console.log('User ID stored from login response:', response.userId);
         } else {
-          console.warn('Login response did not contain a user ID (userId, id, or user.id).');
+          console.warn('Login response did not contain a user ID.');
+        }
+
+        // Store username from login response or use the credentials username
+        if (response.username) {
+          this.setUsername(response.username);
+          console.log('Username stored from login response:', response.username);
+        } else {
+          this.setUsername(credentials.username);
+          console.log('Username stored from login credentials:', credentials.username);
         }
       })
     );
   }
 
-  // registerAndLogin method is now redundant as submitFormData handles this.
-  // You can remove it or keep it if you have other use cases.
-  registerAndLogin(formData: any): Observable<any> {
-    const transformedData = this.transformFormData(formData);
-
-    return this.http.post<any>(`${this.apiUrl}/register`, transformedData).pipe(
+  // Updated registerAndLogin method
+  registerAndLogin(registrationData: { username: string; email: string; password: string; name?: string }): Observable<any> {
+    return this.register(registrationData).pipe(
       tap((registerResponse) => {
         if (registerResponse.id) {
           this.setCurrentUserId(registerResponse.id.toString());
+          console.log('User ID stored from registration:', registerResponse.id);
+        }
+        // Store username from registration
+        if (registerResponse.username || registrationData.username) {
+          this.setUsername(registerResponse.username || registrationData.username);
+          console.log('Username stored from registration:', registerResponse.username || registrationData.username);
         }
       }),
       switchMap((registerResponse) => {
         const loginCredentials = {
-          email: formData.email,
-          password: formData.password
+          username: registrationData.username,
+          password: registrationData.password
         };
-
         return this.login(loginCredentials);
       })
     );
   }
 
+  // Legacy method - kept for backward compatibility but updated to use new registration
+  submitFormData(formData: any): Observable<any> {
+    // Transform the old format to new registration format
+    const registrationData = {
+      username: formData.username || formData.email, // Use username if provided, otherwise fall back to email
+      email: formData.email,
+      password: formData.password,
+      name: formData.name
+    };
+
+    return this.registerAndLogin(registrationData);
+  }
+
   updateFormData(id: number, formData: any): Observable<any> {
     const transformedData = {
       Id: id,
-      ...this.transformFormData(formData),
+      ...this.transformFormData(formData, ['username', 'email']), // exclude these fields
     };
+
     return this.http.put<any>(`${this.apiUrl}/${id}`, transformedData, {
-      headers: this.getAuthHeaders()
+      headers: this.getAuthHeaders(),
     });
   }
 
@@ -164,10 +197,11 @@ export class FormService {
     });
   }
 
-  private transformFormData(formData: any): any {
+  private transformFormData(formData: any, excludeFields: string[] = []): any {
     const transformed: any = {};
 
     const fieldMappings: { [key: string]: string } = {
+      'username': 'Username',
       'name': 'Name',
       'email': 'Email',
       'description': 'Description',
@@ -180,6 +214,8 @@ export class FormService {
     };
 
     for (const [angularField, backendField] of Object.entries(fieldMappings)) {
+      if (excludeFields.includes(angularField)) continue; // Skip excluded fields
+
       const fieldValue = formData[angularField];
       const fieldConfig = this.getFieldConfig(angularField);
 
@@ -219,6 +255,7 @@ export class FormService {
         }
       }
     }
+
     return transformed;
   }
 

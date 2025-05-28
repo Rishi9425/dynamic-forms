@@ -1,63 +1,176 @@
 <div class="login-container">
   <div class="login-card">
-    <p-card header="Login" styleClass="login-form-card">
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    <p-card [header]="isLoginMode ? 'Login' : 'Register'" styleClass="login-form-card">
+      <form *ngIf="isLoginMode" [formGroup]="loginForm" (ngSubmit)="onLoginSubmit()">
         <div class="form-field">
-          <label for="email">Email</label>
-          <input 
-            pInputText 
-            id="email" 
-            formControlName="email" 
-            placeholder="Enter your email"
-            [class.ng-invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+          <label for="username">Username</label>
+          <input
+            pInputText
+            id="username"
+            formControlName="username"
+            placeholder="Enter your username"
+            [class.ng-invalid]="loginForm.get('username')?.invalid && loginForm.get('username')?.touched"
           />
-          <small 
-            class="error-message" 
-            *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+          <small
+            class="error-message"
+            *ngIf="loginForm.get('username')?.invalid && loginForm.get('username')?.touched"
           >
-            Please enter a valid email address
+            <span *ngIf="loginForm.get('username')?.errors?.['required']">
+              Username is required
+            </span>
+            <span *ngIf="loginForm.get('username')?.errors?.['minlength']">
+              Username must be at least 3 characters long
+            </span>
           </small>
         </div>
 
         <div class="form-field">
           <label for="password">Password</label>
-          <p-password 
-            formControlName="password" 
+          <p-password
+            formControlName="password"
             [toggleMask]="true"
             placeholder="Enter your password"
             [feedback]="false"
             [class.ng-invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
           ></p-password>
-          <small 
-            class="error-message" 
+          <small
+            class="error-message"
             *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
           >
             Password is required
           </small>
         </div>
 
+        <div class="forgot-password">
+          <a (click)="forgotPassword()" class="link">Forgot Password?</a>
+        </div>
+
         <div class="form-actions">
-          <p-button 
-            type="submit" 
-            label="Login" 
+          <p-button
+            type="submit"
+            label="Login"
             [disabled]="loginForm.invalid || loading"
             [loading]="loading"
             styleClass="login-button"
-            (click)="onSubmit()"
           ></p-button>
         </div>
 
         <div class="register-link">
-          <p>Don't have an account? 
-            <a (click)="goToRegister()" class="link">Register here</a>
+          <p>Don't have an account?
+            <a (click)="toggleMode()" class="link">Register here</a>
           </p>
         </div>
       </form>
 
-      <p-messages 
-        *ngIf="errorMessage" 
-        severity="error" 
-        [value]="[{severity:'error', summary:'Login Failed', detail: errorMessage}]"
+      <form *ngIf="!isLoginMode" [formGroup]="registerForm" (ngSubmit)="onRegisterSubmit()">
+        <div class="form-field">
+          <label for="regUsername">Username</label>
+          <input
+            pInputText
+            id="regUsername"
+            formControlName="username"
+            placeholder="Choose a username"
+            [class.ng-invalid]="registerForm.get('username')?.invalid && registerForm.get('username')?.touched"
+          />
+          <small
+            class="error-message"
+            *ngIf="registerForm.get('username')?.invalid && registerForm.get('username')?.touched"
+          >
+            <span *ngIf="registerForm.get('username')?.errors?.['required']">
+              Username is required
+            </span>
+            <span *ngIf="registerForm.get('username')?.errors?.['minlength']">
+              Username must be at least 3 characters long
+            </span>
+            <span *ngIf="registerForm.get('username')?.errors?.['pattern']">
+              Username can only contain letters, numbers, and underscores
+            </span>
+          </small>
+        </div>
+
+        <div class="form-field">
+          <label for="regEmail">Email</label>
+          <input
+            pInputText
+            id="regEmail"
+            formControlName="email"
+            placeholder="Enter your email"
+            [class.ng-invalid]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+          />
+          <small
+            class="error-message"
+            *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+          >
+            Please enter a valid email address
+          </small>
+        </div>
+
+        <div class="form-field">
+          <label for="regPassword">Password</label>
+          <p-password
+            formControlName="password"
+            [toggleMask]="true"
+            placeholder="Enter your password"
+            [feedback]="true"
+            [class.ng-invalid]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+          ></p-password>
+          <small
+            class="error-message"
+            *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+          >
+            Password must be at least 6 characters long
+          </small>
+        </div>
+
+        <div class="form-field">
+          <label for="confirmPassword">Confirm Password</label>
+          <p-password
+            formControlName="confirmPassword"
+            [toggleMask]="true"
+            placeholder="Confirm your password"
+            [feedback]="false"
+            [class.ng-invalid]="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched"
+          ></p-password>
+          <small
+            class="error-message"
+            *ngIf="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched"
+          >
+            <span *ngIf="registerForm.get('confirmPassword')?.errors?.['required']">
+              Please confirm your password
+            </span>
+            <span *ngIf="registerForm.get('confirmPassword')?.errors?.['passwordMismatch']">
+              Passwords do not match
+            </span>
+          </small>
+        </div>
+
+        <div class="form-actions">
+          <p-button
+            type="submit"
+            label="Register"
+            [disabled]="registerForm.invalid || loading"
+            [loading]="loading"
+            styleClass="login-button"
+          ></p-button>
+        </div>
+
+        <div class="register-link">
+          <p>Already have an account?
+            <a (click)="toggleMode()" class="link">Login here</a>
+          </p>
+        </div>
+      </form>
+
+      <p-messages
+        *ngIf="errorMessage"
+        severity="error"
+        [value]="[{severity:'error', summary: isLoginMode ? 'Login Failed' : 'Registration Failed', detail: errorMessage}]"
+      ></p-messages>
+
+      <p-messages
+        *ngIf="successMessage"
+        severity="success"
+        [value]="[{severity:'success', summary:'Success', detail: successMessage}]"
       ></p-messages>
     </p-card>
   </div>

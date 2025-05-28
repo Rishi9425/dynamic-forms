@@ -13,7 +13,7 @@
              [ngClass]="{'lg:col-12': control.type === 'textarea'}">
 
           <!-- Text Inputs -->
-          <div class="field mb-3" *ngIf="['text', 'email'].includes(control.type)">
+          <div class="field mb-3" *ngIf="['text'].includes(control.type)">
             <label [for]="control.name" class="block mb-2">{{ control.label }}</label>
             <input [type]="control.type" pInputText [id]="control.name"
               [formControlName]="control.name"

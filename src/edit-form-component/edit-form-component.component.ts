@@ -31,23 +31,23 @@ export class EditFormComponentComponent implements OnInit {
   ngOnInit(): void {
     this.dynamicForm = this.fb.group({});
 
-    
     this.route.params.subscribe((params) => {
       if (params['id']) {
         this.formId = +params['id'];
         this.loadFormData();
       }
     });
-
   }
-//load form structure
+
+  //load form structure
   private loadFormData(): void {
     console.log('Loading form data for ID:', this.formId);
 
     this.formService
       .getFormStructure()
       .then((data) => {
-        this.formStructure = data;
+        // Filter out username and email if they are part of the form structure for editing
+        this.formStructure = data.filter(control => control.name !== 'username' && control.name !== 'email' && control.name !== 'password' && control.name !== 'confirmPassword');
         this.loadExistingFormData();
       })
       .catch((err) => {
@@ -55,21 +55,14 @@ export class EditFormComponentComponent implements OnInit {
         this.loading = false;
       });
   }
-//get this data inside the field
+
+  //get this data inside the field
   private loadExistingFormData(): void {
-    this.formService.getFormsFromBackend().subscribe({
-      next: (forms) => {
-        console.log('All forms loaded:', forms);
-        console.log('Looking for form with ID:', this.formId);
-
-        const existingForm = forms.find((form) => {
-          const formIdToCheck = form.id;
-          console.log('Checking form:', form, 'ID:', formIdToCheck);
-          return formIdToCheck === this.formId;
-        });
-
+    // Call getFormByUserId instead of getFormsFromBackend to fetch a single user's data
+    this.formService.getFormByUserId(this.formId).subscribe({
+      next: (existingForm) => {
+        console.log('Existing form data loaded:', existingForm);
         if (existingForm) {
-          console.log('Found existing form:', existingForm);
           this.existingFormData = existingForm;
           this.initFormWithData();
         } else {
@@ -80,7 +73,7 @@ export class EditFormComponentComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading existing form data:', error);
-        this.initForm();
+        this.initForm(); // Initialize an empty form if data loading fails
         this.loading = false;
       },
     });
@@ -111,7 +104,6 @@ export class EditFormComponentComponent implements OnInit {
         control.type
       );
 
-     
       if (control.type === 'date' && value) {
         value = new Date(value);
       } else if (control.type === 'multiselect' && value) {
@@ -158,17 +150,18 @@ export class EditFormComponentComponent implements OnInit {
     if (!this.existingFormData) return null;
 
     const fieldMapping: { [key: string]: string } = {
+      // Note: 'username' and 'email' are not in this mapping if we want to exclude them from the editable form
       name: 'name',
-      email: 'email',
       description: 'description',
       age: 'age',
-      birthday: 'date',
+      birthday: 'birthday', // Assuming your backend returns 'birthday' as is
       gender: 'gender',
       country: 'country',
       skills: 'skills',
+      // password is not included here as it's not meant for direct update in this form
     };
 
-    const backendFieldName = fieldMapping[fieldName] || fieldName;
+    const backendFieldName = fieldMapping[fieldName] || fieldName; // Fallback to fieldName if not mapped
     const value = this.existingFormData[backendFieldName];
 
     console.log(
@@ -183,7 +176,6 @@ export class EditFormComponentComponent implements OnInit {
 
     const validatorFunctions: Record<string, Function> = {
       required: () => Validators.required,
-      email: () => Validators.email,
       minLength: (v: number) => Validators.minLength(v),
       maxLength: (v: number) => Validators.maxLength(v),
       pattern: (v: string) => Validators.pattern(v),
@@ -222,26 +214,39 @@ export class EditFormComponentComponent implements OnInit {
       return;
     }
 
+    if (this.dynamicForm.invalid) {
+      console.error('Form is invalid. Cannot submit.');
+      this.dynamicForm.markAllAsTouched(); // Mark fields to show errors
+      return;
+    }
+
     console.log('Submitting form with ID:', this.formId);
     console.log('Form data:', this.dynamicForm.value);
 
     this.submitting = true;
-    const formData = this.dynamicForm.value;
+    
+    // Create a new object to send, excluding username and email
+    const formDataToSend = { ...this.dynamicForm.value };
+    delete formDataToSend.username; // Exclude username
+    delete formDataToSend.email;    // Exclude email
+    delete formDataToSend.password; // Exclude password if present
+    delete formDataToSend.confirmPassword; // Exclude confirmPassword if present
 
-    this.formService.updateFormData(this.formId, formData).subscribe({
+    this.formService.updateFormData(this.formId, formDataToSend).subscribe({
       next: (response) => {
         console.log('Form updated successfully:', response);
         this.submitting = false;
-        this.router.navigate(['/dashboard' , this.formId]);
+        this.router.navigate(['/dashboard', this.formId]);
       },
       error: (error) => {
         console.error('Error updating form:', error);
         this.submitting = false;
+        // Optionally display an error message to the user
       },
     });
   }
 
   cancel(): void {
-    this.router.navigate(['/cards']);
+    this.router.navigate(['/cards']); // Or navigate to dashboard or previous page
   }
 }

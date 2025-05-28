@@ -101,7 +101,7 @@ export class DynamicFormComponent implements OnInit {
         this.submitting = false;
         // Optionally reset or navigate
         // this.dynamicForm.reset();
-         this.router.navigate(['/cards']);
+         this.router.navigate(['/dashboard' ]);
       },
       error: (error) => {
         console.error('Error submitting form:', error);
