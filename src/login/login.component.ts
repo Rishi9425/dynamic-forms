@@ -1,8 +1,9 @@
+// login.component.ts
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { FormService } from '../service/form-service.service';
-import { ImportsModule } from './imports';
+import { ImportsModule } from './imports'; // Assuming this path is correct
 
 @Component({
   selector: 'app-login',
@@ -30,24 +31,33 @@ export class LoginComponent implements OnInit {
   }
 
   private initializeForms(): void {
-    // Login Form - now uses username instead of email
     this.loginForm = this.fb.group({
       username: ['', [Validators.required, Validators.minLength(3)]],
-      password: ['', Validators.required]
+      password: ['', Validators.required],
     });
 
-    // Register Form - now includes username field
-    this.registerForm = this.fb.group({
-      username: ['', [Validators.required, Validators.minLength(3), Validators.pattern(/^[a-zA-Z0-9_]+$/)]],
-      name: [''], // Optional field
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-      confirmPassword: ['', Validators.required]
-    }, { validators: this.passwordMatchValidator });
+    this.registerForm = this.fb.group(
+      {
+        username: [
+          '',
+          [
+            Validators.required,
+            Validators.minLength(3),
+            Validators.pattern(/^[a-zA-Z0-9_]+$/),
+          ],
+        ],
+        name: [''],
+        email: ['', [Validators.required, Validators.email]],
+        password: ['', [Validators.required, Validators.minLength(6)]],
+        confirmPassword: ['', Validators.required],
+      },
+      { validators: this.passwordMatchValidator }
+    );
   }
 
-  // Custom validator to check if passwords match
-  private passwordMatchValidator(control: AbstractControl): { [key: string]: boolean } | null {
+  private passwordMatchValidator(
+    control: AbstractControl
+  ): { [key: string]: boolean } | null {
     const password = control.get('password');
     const confirmPassword = control.get('confirmPassword');
 
@@ -59,7 +69,6 @@ export class LoginComponent implements OnInit {
       confirmPassword.setErrors({ passwordMismatch: true });
       return { passwordMismatch: true };
     } else {
-      // Remove the passwordMismatch error if passwords match
       if (confirmPassword.errors) {
         delete confirmPassword.errors['passwordMismatch'];
         if (Object.keys(confirmPassword.errors).length === 0) {
@@ -75,8 +84,6 @@ export class LoginComponent implements OnInit {
     this.clearMessages();
     this.resetForms();
   }
-
-  
 
   private resetForms(): void {
     this.loginForm.reset();
@@ -101,15 +108,14 @@ export class LoginComponent implements OnInit {
       next: (response) => {
         console.log('Login response:', response);
         this.loading = false;
-
+        // The userId is now set in the service within the tap operator.
+        // We can safely navigate immediately.
         const currentUserId = this.formService.getCurrentUserId();
-
-        if (currentUserId ) {
+        if (currentUserId) {
           console.log('Navigating to dashboard with user ID:', currentUserId);
-         this.router.navigate(['/dashboard', currentUserId]);
-
+          this.router.navigate(['/dashboard', currentUserId]);
         } else {
-          console.error('No valid user ID found after login');
+          console.error('No valid user ID found after login.');
           this.errorMessage = 'Login successful but user ID not found. Please try again.';
         }
       },
@@ -122,7 +128,7 @@ export class LoginComponent implements OnInit {
         } else {
           this.errorMessage = 'Invalid username or password';
         }
-      }
+      },
     });
   }
 
@@ -135,12 +141,11 @@ export class LoginComponent implements OnInit {
     this.loading = true;
     this.clearMessages();
 
-    // Prepare registration data with only the required fields
     const registrationData = {
       username: this.registerForm.value.username,
       email: this.registerForm.value.email,
       password: this.registerForm.value.password,
-      name: this.registerForm.value.name || null // Optional field
+      name: this.registerForm.value.name || null,
     };
 
     console.log('Registration data:', registrationData);
@@ -149,19 +154,16 @@ export class LoginComponent implements OnInit {
       next: (response) => {
         console.log('Registration and login response:', response);
         this.loading = false;
+        this.successMessage = 'Registration successful! Redirecting to dashboard...';
 
+        // The userId is now set in the service within the tap operator.
+        // We can safely navigate immediately.
         const currentUserId = this.formService.getCurrentUserId();
-
         if (currentUserId && currentUserId > 0) {
           console.log('Registration successful, navigating to dashboard with user ID:', currentUserId);
-          this.successMessage = 'Registration successful! Redirecting to dashboard...';
-
-          // Small delay to show success message before navigating
-          setTimeout(() => {
-            this.router.navigate(['/dashboard', currentUserId]);
-          }, 1500);
+          this.router.navigate(['/dashboard', currentUserId]);
         } else {
-          console.error('Registration successful but user ID not found');
+          console.error('Registration successful but user ID not found.');
           this.successMessage = 'Registration successful! Please login to continue.';
           this.isLoginMode = true;
           this.resetForms();
@@ -171,7 +173,6 @@ export class LoginComponent implements OnInit {
         this.loading = false;
         console.error('Registration failed:', error);
 
-        // Handle different types of errors
         if (error.error && error.error.message) {
           this.errorMessage = error.error.message;
         } else if (error.status === 400) {
@@ -179,11 +180,10 @@ export class LoginComponent implements OnInit {
         } else {
           this.errorMessage = 'Registration failed. Please try again.';
         }
-      }
+      },
     });
   }
 
-  // Keep the original method for backward compatibility
   onSubmit(): void {
     if (this.isLoginMode) {
       this.onLoginSubmit();
@@ -192,7 +192,6 @@ export class LoginComponent implements OnInit {
     }
   }
 
-  // Keep the original method for backward compatibility
   goToRegister(): void {
     this.isLoginMode = false;
     this.clearMessages();
@@ -200,8 +199,6 @@ export class LoginComponent implements OnInit {
   }
 
   forgotPassword(): void {
-  
-   this.router.navigate(['/forgot-password' ]);
-    
+    this.router.navigate(['/forgot-password']);
   }
 }

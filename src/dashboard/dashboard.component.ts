@@ -4,6 +4,7 @@ import { IFormStructure } from '../domain/forms';
 import { ImportsModule } from '../../src/imports';
 import { CommonModule } from '@angular/common'; // Import CommonModule for ngIf, ngFor
 import { Router } from '@angular/router';
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -20,10 +21,12 @@ export class DashboardComponent implements OnInit {
   constructor(private formService: FormService, private router: Router) {}
 
   ngOnInit(): void {
+    // First, load the form structure
     this.formService
       .getFormStructure()
       .then((data) => {
         this.formStructure = data;
+        // Only then attempt to load user data
         this.loadUserData();
       })
       .catch((err) => {
@@ -49,8 +52,9 @@ export class DashboardComponent implements OnInit {
       });
     } else {
       this.error = 'No user ID found. Please log in.';
-
       this.loading = false;
+      // Optionally redirect to login if no user ID is found
+      // this.router.navigate(['/login']);
     }
   }
 
@@ -79,37 +83,9 @@ export class DashboardComponent implements OnInit {
     }
     return value;
   }
-  // Implement your update logic here, e.g., navigate to an update form
-  onUpdate(product: any) {
-    const formId = product.id;
 
-    if (!formId) {
-      console.error('No ID found for update');
-      return;
-    }
+ 
 
-    this.router.navigate(['/edit', formId]);
-  }
-
-  onDelete(): void {
-    if (this.userData && this.userData.id) {
-      if (confirm('Are you sure you want to delete your data?')) {
-        this.loading = true;
-        this.formService.deleteFormData(this.userData.id).subscribe({
-          next: () => {
-            this.userData = null;
-            this.loading = false;
-            alert('Your data has been deleted.');
-          },
-          error: (err) => {
-            this.loading = false;
-            this.error = 'Failed to delete user data. Please try again later.';
-            console.error('Delete failed:', err);
-          },
-        });
-      }
-    }
-  }
   Nouser() {
     this.router.navigate(['/login']);
   }

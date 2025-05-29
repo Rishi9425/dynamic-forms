@@ -1,3 +1,54 @@
+// Dashboard SCSS - Consistent Design System
+// Variables
+$primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+$secondary-gradient: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+$success-color: #28a745;
+$danger-color: #dc3545;
+$warning-color: #ffc107;
+$info-color: #17a2b8;
+$light-color: #f8f9fa;
+$dark-color: #343a40;
+$border-color: #dee2e6;
+$text-primary: #2c3e50;
+$text-secondary: #6c757d;
+$white: #ffffff;
+
+// Typography
+$font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+$font-size-base: 1rem;
+$font-size-lg: 1.25rem;
+$font-size-xl: 1.5rem;
+$font-size-xxl: 2rem;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+// Spacing
+$spacer: 1rem;
+$spacer-xs: 0.25rem;
+$spacer-sm: 0.5rem;
+$spacer-md: 1rem;
+$spacer-lg: 1.5rem;
+$spacer-xl: 2rem;
+$spacer-xxl: 3rem;
+
+// Border radius
+$border-radius-sm: 0.375rem;
+$border-radius: 0.5rem;
+$border-radius-lg: 0.75rem;
+$border-radius-xl: 1rem;
+
+// Shadows
+$shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+$shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);
+$shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.1);
+
+// Transitions
+$transition-base: all 0.3s ease;
+$transition-fast: all 0.2s ease;
+
 // Keyframe animations
 @keyframes fadeIn {
   from {
@@ -30,17 +81,20 @@
   }
 }
 
+// Dashboard container
 .dashboard-container {
-  padding: 30px;
-  max-width: 900px;
-  margin: 40px auto;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  padding: $spacer-xl;
+  max-width: 1200px;
+  margin: $spacer-xl auto;
+  background: $primary-gradient;
+  border-radius: $border-radius-xl;
+  box-shadow: $shadow-xl;
   position: relative;
   overflow: hidden;
   animation: fadeIn 0.6s ease-out;
+  font-family: $font-family;
 
+  // Glass effect overlay
   &::before {
     content: '';
     position: absolute;
@@ -52,12 +106,13 @@
     pointer-events: none;
   }
 
+  // Main heading
   h2 {
-    color: #ffffff;
+    color: $white;
     text-align: center;
-    margin-bottom: 35px;
-    font-size: 2.5rem;
-    font-weight: 700;
+    margin-bottom: $spacer-xxl;
+    font-size: $font-size-xxl;
+    font-weight: $font-weight-bold;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
     letter-spacing: -0.5px;
     position: relative;
@@ -71,103 +126,107 @@
       transform: translateX(-50%);
       width: 60px;
       height: 3px;
-      background: linear-gradient(90deg, #ffd89b 0%, #19547b 100%);
+      background: $secondary-gradient;
       border-radius: 2px;
     }
   }
 
-  .loading-message, .error-message {
+  // Loading and error states
+  .loading-message, 
+  .error-message {
     text-align: center;
-    padding: 20px;
-    border-radius: 12px;
-    margin-bottom: 20px;
-    font-weight: 500;
-    font-size: 1.1rem;
+    padding: $spacer-lg;
+    border-radius: $border-radius-lg;
+    margin-bottom: $spacer-lg;
+    font-weight: $font-weight-medium;
+    font-size: $font-size-lg;
     animation: slideIn 0.4s ease-out;
     position: relative;
     z-index: 1;
+    backdrop-filter: blur(10px);
   }
 
   .loading-message {
     background: linear-gradient(135deg, rgba(224, 247, 250, 0.95) 0%, rgba(178, 235, 242, 0.95) 100%);
-    color: #0277bd;
-    border: 1px solid rgba(2, 119, 189, 0.2);
-    backdrop-filter: blur(10px);
+    color: $info-color;
+    border: 1px solid rgba(23, 162, 184, 0.2);
 
     &::before {
       content: '⏳';
-      font-size: 1.5rem;
+      font-size: $font-size-xl;
       display: block;
-      margin-bottom: 8px;
+      margin-bottom: $spacer-sm;
       animation: pulse 2s infinite;
     }
   }
 
   .error-message {
     background: linear-gradient(135deg, rgba(255, 224, 224, 0.95) 0%, rgba(255, 205, 210, 0.95) 100%);
-    color: #c62828;
-    border: 1px solid rgba(198, 40, 40, 0.2);
-    backdrop-filter: blur(10px);
+    color: $danger-color;
+    border: 1px solid rgba(220, 53, 69, 0.2);
 
     &::before {
       content: '⚠️';
-      font-size: 1.5rem;
+      font-size: $font-size-xl;
       display: block;
-      margin-bottom: 8px;
+      margin-bottom: $spacer-sm;
     }
   }
 
+  // User details section
   .user-details {
     position: relative;
     z-index: 1;
     animation: slideIn 0.6s ease-out 0.2s both;
 
     h3 {
-      color: #ffffff;
-      margin-bottom: 25px;
-      font-size: 1.8rem;
-      font-weight: 600;
+      color: $white;
+      margin-bottom: $spacer-xl;
+      font-size: $font-size-xl;
+      font-weight: $font-weight-semibold;
       text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
       border-bottom: 2px solid rgba(255, 255, 255, 0.3);
-      padding-bottom: 15px;
+      padding-bottom: $spacer-md;
       position: relative;
 
       &::before {
         content: '👤';
-        margin-right: 10px;
-        font-size: 1.5rem;
+        margin-right: $spacer-sm;
+        font-size: $font-size-xl;
       }
     }
 
+    // Main card
     .card {
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 16px;
-      padding: 30px;
-      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
-      transition: all 0.3s ease;
+      border-radius: $border-radius-xl;
+      padding: $spacer-xl;
+      box-shadow: $shadow-lg;
+      transition: $transition-base;
 
       &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 12px 40px rgba(31, 38, 135, 0.3);
+        transform: translateY(-4px);
+        box-shadow: 0 16px 48px rgba(31, 38, 135, 0.3);
       }
 
+      // Form groups
       .form-group {
         display: flex;
         align-items: center;
-        margin-bottom: 20px;
-        padding: 15px;
-        border-radius: 12px;
+        margin-bottom: $spacer-lg;
+        padding: $spacer-md;
+        border-radius: $border-radius-lg;
         background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 250, 252, 0.8) 100%);
         border: 1px solid rgba(226, 232, 240, 0.5);
-        transition: all 0.3s ease;
+        transition: $transition-base;
         position: relative;
         overflow: hidden;
 
         &:hover {
           background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(248, 250, 252, 1) 100%);
-          border-color: rgba(99, 102, 241, 0.3);
+          border-color: rgba(102, 126, 234, 0.3);
           transform: translateX(5px);
         }
 
@@ -175,6 +234,7 @@
           margin-bottom: 0;
         }
 
+        // Left border accent
         &::before {
           content: '';
           position: absolute;
@@ -182,60 +242,62 @@
           top: 0;
           bottom: 0;
           width: 4px;
-          background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+          background: $primary-gradient;
           border-radius: 0 4px 4px 0;
         }
 
         label {
-          font-weight: 600;
-          color: #374151;
+          font-weight: $font-weight-semibold;
+          color: $text-primary;
           width: 140px;
           flex-shrink: 0;
           font-size: 0.95rem;
           text-transform: uppercase;
           letter-spacing: 0.5px;
           position: relative;
-          padding-left: 15px;
+          padding-left: $spacer-md;
 
           &::after {
             content: ':';
             margin-left: 2px;
-            color: #6b7280;
+            color: $text-secondary;
           }
         }
 
         span {
           flex-grow: 1;
-          color: #1f2937;
-          padding-left: 20px;
+          color: $text-primary;
+          padding-left: $spacer-lg;
           word-break: break-word;
-          font-weight: 500;
-          font-size: 1rem;
+          font-weight: $font-weight-medium;
+          font-size: $font-size-base;
           line-height: 1.5;
         }
       }
 
+      // Button group
       .button-group {
-        margin-top: 30px;
+        margin-top: $spacer-xl;
         display: flex;
-        gap: 15px;
+        gap: $spacer-md;
         justify-content: center;
         flex-wrap: wrap;
 
         .btn {
-          padding: 12px 30px;
+          padding: $spacer-sm $spacer-lg;
           border: none;
           border-radius: 25px;
-          font-weight: 600;
+          font-weight: $font-weight-semibold;
           font-size: 0.95rem;
           text-transform: uppercase;
           letter-spacing: 0.5px;
           cursor: pointer;
-          transition: all 0.3s ease;
+          transition: $transition-base;
           position: relative;
           overflow: hidden;
           min-width: 120px;
 
+          // Shimmer effect
           &::before {
             content: '';
             position: absolute;
@@ -252,8 +314,8 @@
           }
 
           &.btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: $primary-gradient;
+            color: $white;
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 
             &:hover {
@@ -268,7 +330,7 @@
 
           &.btn-danger {
             background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
-            color: white;
+            color: $white;
             box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
 
             &:hover {
@@ -285,15 +347,15 @@
     }
   }
 
-  // Message for no user data
-  > div:last-child {
+  // No user data message
+  .no-data-message {
     text-align: center;
-    padding: 40px 20px;
+    padding: $spacer-xxl $spacer-lg;
     color: rgba(255, 255, 255, 0.9);
-    font-size: 1.2rem;
-    font-weight: 500;
+    font-size: $font-size-lg;
+    font-weight: $font-weight-medium;
     background: rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
+    border-radius: $border-radius-lg;
     border: 1px solid rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(10px);
     position: relative;
@@ -301,9 +363,9 @@
 
     &::before {
       content: '🔍';
-      font-size: 2rem;
+      font-size: $font-size-xxl;
       display: block;
-      margin-bottom: 15px;
+      margin-bottom: $spacer-md;
     }
   }
 }
@@ -311,16 +373,16 @@
 // Responsive design
 @media (max-width: 768px) {
   .dashboard-container {
-    margin: 20px;
-    padding: 20px;
+    margin: $spacer-lg;
+    padding: $spacer-lg;
 
     h2 {
-      font-size: 2rem;
+      font-size: $font-size-xl;
     }
 
     .user-details {
       .card {
-        padding: 20px;
+        padding: $spacer-lg;
 
         .form-group {
           flex-direction: column;
@@ -329,12 +391,12 @@
 
           label {
             width: 100%;
-            margin-bottom: 8px;
-            padding-left: 15px;
+            margin-bottom: $spacer-sm;
+            padding-left: $spacer-md;
           }
 
           span {
-            padding-left: 15px;
+            padding-left: $spacer-md;
             width: 100%;
           }
         }
@@ -353,20 +415,20 @@
 
 @media (max-width: 480px) {
   .dashboard-container {
-    margin: 10px;
-    padding: 15px;
+    margin: $spacer-sm;
+    padding: $spacer-md;
 
     h2 {
-      font-size: 1.8rem;
+      font-size: $font-size-lg;
     }
 
     .user-details {
       .card {
-        padding: 15px;
+        padding: $spacer-md;
 
         .form-group {
-          padding: 12px;
-          margin-bottom: 15px;
+          padding: $spacer-sm;
+          margin-bottom: $spacer-md;
         }
       }
     }

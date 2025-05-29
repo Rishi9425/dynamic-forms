@@ -1,4 +1,5 @@
 // Variables for consistent spacing and styling
+//navbar scss
 :host {
   --navbar-padding: 1rem 1.5rem;
   --navbar-gap: 1rem;
@@ -149,7 +150,7 @@
   .p-avatar {
     cursor: pointer;
     transition: var(--transition);
-    border: 2px solid transparent;
+    border: 2px solid black;
     font-weight: 600;
     
     &:hover {
@@ -170,7 +171,7 @@
   top: calc(100% + 0.5rem);
   right: 0;
   min-width: var(--dropdown-width);
-  background-color: var(--surface-card);
+  background-color: var(black);
   border: 1px solid var(--surface-border);
   border-radius: var(--border-radius);
   box-shadow: var(--dropdown-shadow);

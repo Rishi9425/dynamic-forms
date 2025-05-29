@@ -19,6 +19,7 @@
 
 .form-field {
   margin-bottom: 1.5rem;
+  width: 100%;
 }
 
 .form-field label {
@@ -28,9 +29,24 @@
   color: #333;
 }
 
-.form-field input,
-.form-field p-password {
+#username {
   width: 100%;
+  box-sizing: border-box !important;
+}
+
+#regUsername {
+  width: 100%;
+  box-sizing: border-box !important;
+}
+
+#regEmail {
+  width: 100%;
+  box-sizing: border-box !important;
+}
+
+#password {
+  width: 100%;
+  box-sizing: border-box !important;
 }
 
 .error-message {
@@ -69,8 +85,24 @@
   text-decoration: underline;
 }
 
+
+::ng-deep .p-password {
+  width: 100% !important;
+  display: block !important;
+}
+
+::ng-deep .p-password .p-inputtext {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
 ::ng-deep .p-password input {
-  width: 100%;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+::ng-deep .p-password .p-password-panel {
+  width: 100% !important;
 }
 
 ::ng-deep .p-button {

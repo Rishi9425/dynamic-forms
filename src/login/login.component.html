@@ -5,7 +5,7 @@
         <div class="form-field">
           <label for="username">Username</label>
           <input
-            pInputText
+            pInputText 
             id="username"
             formControlName="username"
             placeholder="Enter your username"
@@ -31,6 +31,8 @@
             [toggleMask]="true"
             placeholder="Enter your password"
             [feedback]="false"
+            id="password"
+            [ngStyle]="{'width': '100%'}"
             [class.ng-invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
           ></p-password>
           <small
@@ -68,6 +70,7 @@
           <input
             pInputText
             id="regUsername"
+            
             formControlName="username"
             placeholder="Choose a username"
             [class.ng-invalid]="registerForm.get('username')?.invalid && registerForm.get('username')?.touched"
@@ -118,7 +121,7 @@
             class="error-message"
             *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
           >
-            Password must be at least 6 characters long
+            Password must be at least 8 characters long
           </small>
         </div>
 
@@ -127,9 +130,11 @@
           <p-password
             formControlName="confirmPassword"
             [toggleMask]="true"
+            id="password"
             placeholder="Confirm your password"
             [feedback]="false"
             [class.ng-invalid]="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched"
+           
           ></p-password>
           <small
             class="error-message"

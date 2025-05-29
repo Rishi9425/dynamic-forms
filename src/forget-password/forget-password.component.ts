@@ -2,14 +2,13 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { FormService } from '../service/form-service.service';
+import { FormService} from '../service/form-service.service';
 import { CommonModule } from '@angular/common';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 import { MessagesModule } from 'primeng/messages';
-
 
 @Component({
   selector: 'app-edit-password',
@@ -23,7 +22,7 @@ import { MessagesModule } from 'primeng/messages';
   templateUrl: './forget-password.component.html',
   styleUrl: './forget-password.component.scss'
 })
-export class EditPasswordComponent {
+export class forgetPasswordComponent {
 changePasswordForm: FormGroup;
   isLoading = false;
   errorMessage = '';
@@ -73,7 +72,7 @@ changePasswordForm: FormGroup;
 
       const formData = this.changePasswordForm.value;
       
-      this.formService.changePassword({
+      this.formService.forgotpassword({
         email: formData.email,
         newPassword: formData.newPassword,
         confirmPassword: formData.confirmPassword
@@ -99,12 +98,7 @@ changePasswordForm: FormGroup;
 
   onCancel() {
    // or wherever you want to navigate back
-     const userId = this.formService.getCurrentUserId();
-    if (userId) {
-      this.router.navigate(['/dashboard', userId]);
-    } else {
-      console.warn('User ID not found for profile update.');
-    }
+      this.router.navigate(['/']);
   }
 
   getMessages() {

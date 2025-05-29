@@ -37,7 +37,7 @@
           <!-- Date -->
           <div class="field mb-3" *ngIf="control.type === 'date'">
             <label [for]="control.name" class="block mb-2">{{ control.label }}</label>
-            <p-calendar [id]="control.name" [formControlName]="control.name" dateFormat="yy-mm-dd"
+            <p-date-picker [id]="control.name" [formControlName]="control.name" dateFormat="yy-mm-dd"
               [showIcon]="true" class="w-full"
               [ngClass]="{'ng-invalid ng-dirty': dynamicForm.get(control.name)?.invalid && dynamicForm.get(control.name)?.touched}" />
             <small class="p-error block mt-2" *ngIf="dynamicForm.get(control.name)?.invalid && dynamicForm.get(control.name)?.touched">

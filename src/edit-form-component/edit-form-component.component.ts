@@ -4,12 +4,13 @@ import { ImportsModule } from './imports';
 import { IFormStructure } from '../domain/forms';
 import { FormService } from '../service/form-service.service';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
-import { Calendar } from 'primeng/calendar';
+
+import { DatePicker } from 'primeng/datepicker';
 
 @Component({
   selector: 'app-edit-form-component',
   standalone: true,
-  imports: [ImportsModule, RouterModule, Calendar],
+  imports: [ImportsModule, RouterModule, DatePicker],
   templateUrl: './edit-form-component.component.html',
   styleUrls: ['./edit-form-component.component.scss'],
 })
@@ -90,86 +91,93 @@ export class EditFormComponentComponent implements OnInit {
     this.dynamicForm = this.fb.group(formGroup);
   }
 
-  private initFormWithData(): void {
-    let formGroup: Record<string, any> = {};
+ private initFormWithData(): void {
+  let formGroup: Record<string, any> = {};
 
-    this.formStructure.forEach((control) => {
-      const controlValidators = this.getValidators(control);
-      let value = this.getExistingValue(control.name);
-
-      console.log(
-        `Processing field ${control.name}:`,
-        value,
-        'Type:',
-        control.type
-      );
-
-      if (control.type === 'date' && value) {
-        value = new Date(value);
-      } else if (control.type === 'multiselect' && value) {
-        if (typeof value === 'string') {
-          value = value.split(',').map((item: string) => item.trim());
-        } else if (!Array.isArray(value)) {
-          value = [];
-        }
-      } else if (control.type === 'checkbox') {
-        value =
-          typeof value === 'string' ? value.toLowerCase() === 'true' : !!value;
-      } else if (control.type === 'radio' && control.name === 'gender') {
-        if (typeof value === 'string') {
-          value = value.toLowerCase().trim() === 'male';
-        } else {
-          value = !!value;
-        }
-      } else if (control.type === 'select' && control.name === 'country') {
-        if (typeof value === 'string') {
-          const countryMap: { [key: string]: number } = {
-            india: 1,
-            usa: 2,
-            canada: 3,
-          };
-          value = countryMap[value.toLowerCase().trim()] || 1;
-        } else if (typeof value !== 'number') {
-          value = 1; 
-        }
-      } else if (control.type === 'number' && value) {
-        value = typeof value === 'string' ? parseInt(value) || 0 : value;
-      }
-
-      formGroup[control.name] = [
-        value !== undefined && value !== null ? value : control.value || '',
-        controlValidators,
-      ];
-    });
-
-    this.dynamicForm = this.fb.group(formGroup);
-    console.log('Form initialized with values:', this.dynamicForm.value);
-  }
-
-  private getExistingValue(fieldName: string): any {
-    if (!this.existingFormData) return null;
-
-    const fieldMapping: { [key: string]: string } = {
-      // Note: 'username' and 'email' are not in this mapping if we want to exclude them from the editable form
-      name: 'name',
-      description: 'description',
-      age: 'age',
-      birthday: 'birthday', // Assuming your backend returns 'birthday' as is
-      gender: 'gender',
-      country: 'country',
-      skills: 'skills',
-      // password is not included here as it's not meant for direct update in this form
-    };
-
-    const backendFieldName = fieldMapping[fieldName] || fieldName; // Fallback to fieldName if not mapped
-    const value = this.existingFormData[backendFieldName];
+  this.formStructure.forEach((control) => {
+    const controlValidators = this.getValidators(control);
+    let value = this.getExistingValue(control.name);
 
     console.log(
-      `Getting value for ${fieldName} (backend: ${backendFieldName}):`,
-      value
+      `Processing field ${control.name}:`,
+      value,
+      'Type:',
+      control.type
     );
-    return value;
-  }
+
+    if (control.type === 'date' && value) {
+      value = new Date(value);
+    } else if (control.type === 'multiselect' && value) {
+      // Fix for multiselect - handle skills properly
+      if (typeof value === 'string' && value.trim() !== '') {
+        // Split by comma and clean up each skill
+        const skillsArray = value.split(',')
+          .map((item: string) => item.trim().toLowerCase())
+          .filter((item: string) => item !== '' && item !== 'null'); // Remove empty and null values
+        value = skillsArray;
+      } else if (Array.isArray(value)) {
+        // If already an array, clean it up
+        value = value.filter((item: any) => item !== null && item !== '' && item !== 'null')
+          .map((item: any) => typeof item === 'string' ? item.toLowerCase().trim() : item);
+      } else {
+        value = []; // Default to empty array
+      }
+    } else if (control.type === 'checkbox') {
+      value =
+        typeof value === 'string' ? value.toLowerCase() === 'true' : !!value;
+    } else if (control.type === 'radio' && control.name === 'gender') {
+      if (typeof value === 'string') {
+        value = value.toLowerCase().trim() === 'male';
+      } else {
+        value = !!value;
+      }
+    } else if (control.type === 'select' && control.name === 'country') {
+      if (typeof value === 'string') {
+        const countryMap: { [key: string]: number } = {
+          india: 1,
+          usa: 2,
+          canada: 3,
+        };
+        value = countryMap[value.toLowerCase().trim()] || 1;
+      } else if (typeof value !== 'number') {
+        value = 1; 
+      }
+    } else if (control.type === 'number' && value) {
+      value = typeof value === 'string' ? parseInt(value) || 0 : value;
+    }
+
+    formGroup[control.name] = [
+      value !== undefined && value !== null ? value : control.value || '',
+      controlValidators,
+    ];
+  });
+
+  this.dynamicForm = this.fb.group(formGroup);
+  console.log('Form initialized with values:', this.dynamicForm.value);
+}
+
+  private getExistingValue(fieldName: string): any {
+  if (!this.existingFormData) return null;
+
+  const fieldMapping: { [key: string]: string } = {
+    name: 'name',
+    description: 'description',
+    age: 'age',
+    birthday: 'birthday',
+    gender: 'gender',
+    country: 'country',
+    skills: 'skills', // Changed from 'Skills' to 'skills' to match your JSON
+  };
+
+  const backendFieldName = fieldMapping[fieldName] || fieldName;
+  const value = this.existingFormData[backendFieldName];
+
+  console.log(
+    `Getting value for ${fieldName} (backend: ${backendFieldName}):`,
+    value
+  );
+  return value;
+}
 
   private getValidators(control: IFormStructure): any[] {
     if (!control.validations || !control.validations.length) return [];
@@ -247,6 +255,7 @@ export class EditFormComponentComponent implements OnInit {
   }
 
   cancel(): void {
-    this.router.navigate(['/cards']); // Or navigate to dashboard or previous page
+     const userId = this.formService.getCurrentUserId();
+   this.router.navigate(['/dashboard', userId])
   }
 }

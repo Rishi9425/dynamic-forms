@@ -12,12 +12,12 @@ export class FormService {
   private apiUrl = 'https://localhost:5263/api/forms';
   private token: string | null = null;
   private currentUserId: string | null = null;
-  private username: string | null = null; // Add username storage
+  private username: string | null = null;
 
   constructor(private http: HttpClient) {
     this.token = localStorage.getItem('jwt_token');
     this.currentUserId = localStorage.getItem('current_user_id');
-    this.username = localStorage.getItem('username'); // Initialize username from localStorage
+    this.username = localStorage.getItem('username'); 
   }
 
   setToken(token: string): void {
@@ -59,10 +59,10 @@ export class FormService {
   clearToken(): void {
     this.token = null;
     this.currentUserId = null;
-    this.username = null; // Clear username as well
+    this.username = null; 
     localStorage.removeItem('jwt_token');
     localStorage.removeItem('current_user_id');
-    localStorage.removeItem('username'); // Remove username from localStorage
+    localStorage.removeItem('username');
   }
 
   private getAuthHeaders(): HttpHeaders {
@@ -81,13 +81,20 @@ export class FormService {
     return !!this.token && !!this.currentUserId;
   }
 
-
-
-  
-  // New method for changing password
-  changePassword(passwordData: { email: string; newPassword: string; confirmPassword: string }): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/change-password`, passwordData, {
+  // New method for editing password with current password verification
+  editPassword(userId: number, passwordData: { 
+    currentPassword: string; 
+    newPassword: string; 
+    confirmPassword: string 
+  }): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/Update-password/${userId}`, passwordData, {
       headers: this.getAuthHeaders()
+    });
+  }
+
+  // Existing method for changing password (keep for backward compatibility)
+  forgotpassword(passwordData: { email: string; newPassword: string; confirmPassword: string }): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/forgot-password`, passwordData, {
     });
   }
 
@@ -167,11 +174,11 @@ export class FormService {
     );
   }
 
-  // Legacy method - kept for backward compatibility but updated to use new registration
+
   submitFormData(formData: any): Observable<any> {
-    // Transform the old format to new registration format
+  
     const registrationData = {
-      username: formData.username || formData.email, // Use username if provided, otherwise fall back to email
+      username: formData.username || formData.email, 
       email: formData.email,
       password: formData.password,
       name: formData.name
@@ -198,66 +205,69 @@ export class FormService {
   }
 
   private transformFormData(formData: any, excludeFields: string[] = []): any {
-    const transformed: any = {};
+  const transformed: any = {};
 
-    const fieldMappings: { [key: string]: string } = {
-      'username': 'Username',
-      'name': 'Name',
-      'email': 'Email',
-      'description': 'Description',
-      'birthday': 'Birthday',
-      'gender': 'Gender',
-      'age': 'Age',
-      'country': 'Country',
-      'skills': 'Skills',
-      'password': 'Password'
-    };
+  const fieldMappings: { [key: string]: string } = {
+    'username': 'Username',
+    'name': 'Name',
+    'email': 'Email',
+    'description': 'Description',
+    'birthday': 'Birthday',
+    'gender': 'Gender',
+    'age': 'Age',
+    'country': 'Country',
+    'skills': 'Skills', 
+    'password': 'Password'
+  };
 
-    for (const [angularField, backendField] of Object.entries(fieldMappings)) {
-      if (excludeFields.includes(angularField)) continue; // Skip excluded fields
+  for (const [angularField, backendField] of Object.entries(fieldMappings)) {
+    if (excludeFields.includes(angularField)) continue;
 
-      const fieldValue = formData[angularField];
-      const fieldConfig = this.getFieldConfig(angularField);
+    const fieldValue = formData[angularField];
+    const fieldConfig = this.getFieldConfig(angularField);
 
-      if (fieldValue !== undefined && fieldValue !== null) {
-        switch (fieldConfig?.type) {
-          case 'text':
-          case 'email':
-          case 'password':
-          case 'textarea':
-            transformed[backendField] = String(fieldValue || '');
-            break;
+    if (fieldValue !== undefined && fieldValue !== null) {
+      switch (fieldConfig?.type) {
+        case 'text':
+        case 'email':
+        case 'password':
+        case 'textarea':
+          transformed[backendField] = String(fieldValue || '');
+          break;
 
-          case 'number':
-            transformed[backendField] = this.parseNumber(fieldValue);
-            break;
+        case 'number':
+          transformed[backendField] = this.parseNumber(fieldValue);
+          break;
 
-          case 'date':
-            transformed[backendField] = this.formatDateForBackend(fieldValue);
-            break;
+        case 'date':
+          transformed[backendField] = this.formatDateForBackend(fieldValue);
+          break;
 
-          case 'radio':
-          case 'select':
-            transformed[backendField] = this.convertOptionToString(fieldValue, fieldConfig);
-            break;
+        case 'radio':
+        case 'select':
+          transformed[backendField] = this.convertOptionToString(fieldValue, fieldConfig);
+          break;
 
-          case 'multiselect':
-            transformed[backendField] = this.convertMultiselectToString(fieldValue, fieldConfig);
-            break;
+        case 'multiselect':
+          transformed[backendField] = this.convertMultiselectToString(fieldValue, fieldConfig);
+          break;
 
-          case 'checkbox':
-            transformed[backendField] = Boolean(fieldValue);
-            break;
+        case 'checkbox':
+          transformed[backendField] = Boolean(fieldValue);
+          break;
 
-          default:
-            transformed[backendField] = fieldValue;
-            break;
-        }
+        default:
+          transformed[backendField] = fieldValue;
+          break;
       }
     }
-
-    return transformed;
   }
+
+  return transformed;
+}
+
+
+
 
   private parseNumber(value: any): number {
     if (value === null || value === undefined || value === '') {
@@ -352,4 +362,7 @@ export class FormService {
       headers: this.getAuthHeaders()
     });
   }
+
+
+
 }
