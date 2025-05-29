@@ -4,7 +4,6 @@ import { ImportsModule } from './imports';
 import { IFormStructure } from '../domain/forms';
 import { FormService } from '../service/form-service.service';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
-
 import { DatePicker } from 'primeng/datepicker';
 
 @Component({
@@ -91,6 +90,38 @@ export class EditFormComponentComponent implements OnInit {
     this.dynamicForm = this.fb.group(formGroup);
   }
 
+  // Helper method to create date without timezone issues
+  private createLocalDate(dateValue: any): Date | null {
+    if (!dateValue) return null;
+    
+    if (dateValue instanceof Date) {
+      // If it's already a Date object, create a new date with local timezone
+      return new Date(dateValue.getFullYear(), dateValue.getMonth(), dateValue.getDate());
+    }
+    
+    if (typeof dateValue === 'string') {
+      // Handle string dates - parse and create local date
+      const parsedDate = new Date(dateValue);
+      if (!isNaN(parsedDate.getTime())) {
+        // Create a new date using the parsed date's components to avoid timezone issues
+        return new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate());
+      }
+    }
+    
+    return null;
+  }
+
+  // Helper method to format date for submission (YYYY-MM-DD format)
+  private formatDateForSubmission(date: Date): string {
+    if (!date || !(date instanceof Date)) return '';
+    
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
+  }
+
  private initFormWithData(): void {
   let formGroup: Record<string, any> = {};
 
@@ -106,7 +137,9 @@ export class EditFormComponentComponent implements OnInit {
     );
 
     if (control.type === 'date' && value) {
-      value = new Date(value);
+      // Use the helper method to create local date
+      value = this.createLocalDate(value);
+      console.log(`Date field ${control.name} processed to:`, value);
     } else if (control.type === 'multiselect' && value) {
       // Fix for multiselect - handle skills properly
       if (typeof value === 'string' && value.trim() !== '') {
@@ -229,16 +262,32 @@ export class EditFormComponentComponent implements OnInit {
     }
 
     console.log('Submitting form with ID:', this.formId);
-    console.log('Form data:', this.dynamicForm.value);
+    console.log('Form data before processing:', this.dynamicForm.value);
 
     this.submitting = true;
     
     // Create a new object to send, excluding username and email
     const formDataToSend = { ...this.dynamicForm.value };
+    
+    // Process date fields before submission
+    this.formStructure.forEach((control) => {
+      if (control.type === 'date' && formDataToSend[control.name]) {
+        const dateValue = formDataToSend[control.name];
+        if (dateValue instanceof Date) {
+          // Format date as YYYY-MM-DD string to avoid timezone issues
+          formDataToSend[control.name] = this.formatDateForSubmission(dateValue);
+          console.log(`Date field ${control.name} formatted for submission:`, formDataToSend[control.name]);
+        }
+      }
+    });
+    
+    // Remove excluded fields
     delete formDataToSend.username; // Exclude username
     delete formDataToSend.email;    // Exclude email
     delete formDataToSend.password; // Exclude password if present
     delete formDataToSend.confirmPassword; // Exclude confirmPassword if present
+
+    console.log('Final form data to send:', formDataToSend);
 
     this.formService.updateFormData(this.formId, formDataToSend).subscribe({
       next: (response) => {

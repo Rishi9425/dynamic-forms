@@ -165,20 +165,20 @@
   }
 }
 
-// User dropdown menu
+// User dropdown menu - Updated for solid background and better responsiveness
 .user-dropdown {
   position: absolute;
   top: calc(100% + 0.5rem);
   right: 0;
   min-width: var(--dropdown-width);
-  background-color: var(black);
+  background-color: #ffffff; // Solid white background
   border: 1px solid var(--surface-border);
   border-radius: var(--border-radius);
   box-shadow: var(--dropdown-shadow);
   z-index: var(--z-dropdown);
   overflow: hidden;
   
-  // Animation
+  // Remove transparency and improve animation
   opacity: 0;
   transform: translateY(-10px) scale(0.95);
   transition: var(--transition);
@@ -190,7 +190,7 @@
     pointer-events: auto;
   }
   
-  // Arrow pointer (optional)
+  // Arrow pointer - Updated with solid background
   &::before {
     content: '';
     position: absolute;
@@ -198,7 +198,7 @@
     right: 20px;
     width: 12px;
     height: 12px;
-    background-color: var(--surface-card);
+    background-color: #ffffff; // Match dropdown background
     border: 1px solid var(--surface-border);
     border-bottom: none;
     border-right: none;
@@ -209,6 +209,7 @@
     list-style: none;
     margin: 0;
     padding: 0.5rem 0;
+    background-color: #ffffff; // Ensure solid background
     
     li {
       &:not(:last-child) {
@@ -220,9 +221,9 @@
         display: block;
         width: 100%;
         padding: 0.75rem 1rem;
-        color: var(--text-color);
+        color: var(--text-color, #333333); // Fallback color
         text-decoration: none;
-        background: none;
+        background: transparent;
         border: none;
         text-align: left;
         cursor: pointer;
@@ -232,17 +233,17 @@
         
         &:hover,
         &:focus {
-          background-color: var(--surface-hover);
-          color: var(--primary-color);
+          background-color: #f8f9fa; // Light gray hover
+          color: var(--primary-color, #007bff);
           padding-left: 1.25rem;
         }
         
         &.danger {
-          color: var(--red-500);
+          color: #dc3545; // Red color for danger actions
           
           &:hover {
-            background-color: var(--red-50);
-            color: var(--red-600);
+            background-color: #f8d7da;
+            color: #721c24;
           }
         }
       }
@@ -254,11 +255,11 @@
         &.p-button-danger {
           background-color: transparent;
           border: none;
-          color: var(--red-500);
+          color: #dc3545;
           
           &:hover {
-            background-color: var(--red-50);
-            color: var(--red-600);
+            background-color: #f8d7da;
+            color: #721c24;
           }
         }
       }
@@ -266,7 +267,7 @@
   }
 }
 
-// Responsive design
+// Enhanced responsive design
 @media (max-width: 768px) {
   :host {
     --navbar-padding: 0.75rem 1rem;
@@ -294,12 +295,33 @@
   .user-dropdown {
     right: -10px;
     min-width: calc(var(--dropdown-width) - 20px);
+    
+    // Adjust arrow position for smaller screens
+    &::before {
+      right: 25px;
+    }
+    
+    .dropdown-menu {
+      li {
+        a,
+        button {
+          padding: 0.65rem 0.875rem;
+          font-size: 0.8rem;
+          
+          &:hover,
+          &:focus {
+            padding-left: 1.125rem;
+          }
+        }
+      }
+    }
   }
 }
 
 @media (max-width: 480px) {
   :host {
     --navbar-padding: 0.5rem 0.75rem;
+    --dropdown-width: 160px;
   }
   
   .p-menubar {
@@ -312,16 +334,107 @@
   
   .user-dropdown {
     right: 0;
-    left: 0;
-    min-width: auto;
-    margin: 0 0.75rem;
+    left: auto;
+    min-width: var(--dropdown-width);
+    margin-right: 0.5rem;
+    
+    // Position arrow for mobile
+    &::before {
+      right: 15px;
+    }
+    
+    .dropdown-menu {
+      padding: 0.25rem 0;
+      
+      li {
+        a,
+        button {
+          padding: 0.6rem 0.75rem;
+          font-size: 0.775rem;
+          
+          &:hover,
+          &:focus {
+            padding-left: 1rem;
+          }
+          
+          i {
+            font-size: 0.8rem;
+            margin-right: 0.375rem;
+          }
+        }
+      }
+    }
   }
 }
 
-// Dark mode support
+// Ultra small screens
+@media (max-width: 320px) {
+  .user-dropdown {
+    right: 0;
+    left: 0;
+    min-width: auto;
+    margin: 0 0.5rem;
+    
+    &::before {
+      right: 50%;
+      transform: translateX(50%) rotate(45deg);
+    }
+  }
+}
+
+// Dark mode support - Updated with solid backgrounds
 @media (prefers-color-scheme: dark) {
   :host {
     --dropdown-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+  }
+  
+  .user-dropdown {
+    background-color: #1f2937; // Dark solid background
+    border-color: #374151;
+    
+    &::before {
+      background-color: #1f2937; // Match dropdown background
+      border-color: #374151;
+    }
+    
+    .dropdown-menu {
+      background-color: #1f2937;
+      
+      li {
+        &:not(:last-child) {
+          border-bottom-color: #374151;
+        }
+        
+        a,
+        button {
+          color: #f9fafb;
+          
+          &:hover,
+          &:focus {
+            background-color: #374151;
+            color: #60a5fa;
+          }
+          
+          &.danger {
+            color: #f87171;
+            
+            &:hover {
+              background-color: #7f1d1d;
+              color: #fca5a5;
+            }
+          }
+        }
+        
+        .p-button.p-button-danger {
+          color: #f87171;
+          
+          &:hover {
+            background-color: #7f1d1d;
+            color: #fca5a5;
+          }
+        }
+      }
+    }
   }
 }
 

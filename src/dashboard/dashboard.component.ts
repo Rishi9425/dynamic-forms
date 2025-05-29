@@ -51,14 +51,12 @@ export class DashboardComponent implements OnInit {
         },
       });
     } else {
+      
       this.error = 'No user ID found. Please log in.';
       this.loading = false;
-      // Optionally redirect to login if no user ID is found
-      // this.router.navigate(['/login']);
     }
   }
 
-  // Helper to get the display label for options (e.g., gender, country)
   getDisplayValue(fieldName: string, value: any): string {
     const fieldConfig = this.formStructure.find(
       (field) => field.name === fieldName
@@ -84,9 +82,15 @@ export class DashboardComponent implements OnInit {
     return value;
   }
 
- 
 
   Nouser() {
     this.router.navigate(['/login']);
   }
+  
+ refreshComponent() {
+  const currentUrl = this.router.url;
+  this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+    this.router.navigate([currentUrl]);
+  });
+}
 }

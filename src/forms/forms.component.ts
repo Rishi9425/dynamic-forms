@@ -1,6 +1,6 @@
+import { ImportsModule } from './../login/imports';
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { ImportsModule } from './imports';
 import { IFormStructure } from '../domain/forms';
 import { FormService } from '../service/form-service.service';
 import { Router, RouterModule } from '@angular/router';
@@ -8,7 +8,7 @@ import { Calendar } from 'primeng/calendar';
 @Component({
   selector: 'app-forms',
   standalone: true,
-  imports: [ImportsModule, RouterModule, Calendar],
+  imports: [ ImportsModule,RouterModule, Calendar],
   templateUrl: './forms.component.html',
   styleUrl: './forms.component.scss'
 })
