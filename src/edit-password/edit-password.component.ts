@@ -45,7 +45,7 @@ export class UpdatePasswordComponent implements OnInit {
   private initializeForm(): void {
     this.editPasswordForm = this.fb.group({
       currentPassword: ['', [Validators.required]],
-      newPassword: ['', [Validators.required, Validators.minLength(6)]],
+      newPassword: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', [Validators.required]]
     }, { validators: this.passwordMatchValidator });
   }
@@ -98,10 +98,9 @@ export class UpdatePasswordComponent implements OnInit {
         this.successMessage = response.message || 'Password updated successfully!';
         this.editPasswordForm.reset();
         
-        // Optionally redirect after successful password change
         setTimeout(() => {
            const userId = this.formService.getCurrentUserId();
-          this.router.navigate(['/dashboard',userId]); // or wherever you want to redirect
+          this.router.navigate(['/dashboard',userId]); 
         }, 2000);
       },
       error: (error) => {
@@ -121,7 +120,7 @@ export class UpdatePasswordComponent implements OnInit {
     this.errorMessage = '';
     this.successMessage = '';
     const userId = this.formService.getCurrentUserId();
-          this.router.navigate(['/dashboard',userId]); // or go back to previous page
+          this.router.navigate(['/dashboard',userId]); 
   }
 
   private markFormGroupTouched(): void {

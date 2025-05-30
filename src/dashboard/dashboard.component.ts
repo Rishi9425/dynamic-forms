@@ -2,13 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { FormService } from '../service/form-service.service';
 import { IFormStructure } from '../domain/forms';
 import { ImportsModule } from '../../src/imports';
-import { CommonModule } from '@angular/common'; // Import CommonModule for ngIf, ngFor
+import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [ImportsModule, CommonModule], // Add CommonModule here
+  imports: [ImportsModule, CommonModule],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
@@ -21,13 +21,11 @@ export class DashboardComponent implements OnInit {
   constructor(private formService: FormService, private router: Router) {}
 
   ngOnInit(): void {
-    // First, load the form structure
     this.formService
       .getFormStructure()
       .then((data) => {
         this.formStructure = data;
-        // Only then attempt to load user data
-        this.loadUserData();
+        this.loadUserDataWithRetry();
       })
       .catch((err) => {
         console.error('Error loading form structure:', err);
@@ -36,25 +34,36 @@ export class DashboardComponent implements OnInit {
       });
   }
 
-  loadUserData(): void {
-    const Id = this.formService.getCurrentUserId();
-    if (Id) {
-      this.formService.getFormByUserId(Id).subscribe({
-        next: (data) => {
-          this.userData = data;
-          this.loading = false;
-        },
-        error: (err) => {
-          console.error('Error fetching user data:', err);
-          this.error = 'Failed to load user data. Please try again later.';
-          this.loading = false;
-        },
-      });
+  loadUserDataWithRetry(
+    maxRetries: number = 3,
+    currentRetry: number = 0
+  ): void {
+    const userId = this.formService.getCurrentUserId();
+
+    if (userId) {
+      this.loadUserData(userId);
+    } else if (currentRetry < maxRetries) {
+      setTimeout(() => {
+        this.loadUserDataWithRetry(maxRetries, currentRetry + 1);
+      }, 100 * (currentRetry + 1));
     } else {
-      
       this.error = 'No user ID found. Please log in.';
       this.loading = false;
     }
+  }
+
+  loadUserData(userId: number): void {
+    this.formService.getFormByUserId(userId).subscribe({
+      next: (data) => {
+        this.userData = data;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error fetching user data:', err);
+        this.error = 'Failed to load user data. Please try again later.';
+        this.loading = false;
+      },
+    });
   }
 
   getDisplayValue(fieldName: string, value: any): string {
@@ -82,15 +91,14 @@ export class DashboardComponent implements OnInit {
     return value;
   }
 
-
   Nouser() {
     this.router.navigate(['/login']);
   }
-  
- refreshComponent() {
-  const currentUrl = this.router.url;
-  this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
-    this.router.navigate([currentUrl]);
-  });
-}
+
+  refreshComponent() {
+    const currentUrl = this.router.url;
+    this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+      this.router.navigate([currentUrl]);
+    });
+  }
 }

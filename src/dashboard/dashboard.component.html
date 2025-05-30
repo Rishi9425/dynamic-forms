@@ -26,11 +26,11 @@
       </div>
       <div class="form-group">
         <label><strong>Birthday:</strong></label>
-        <span>{{ userData.birthday | date:'mediumDate' }}</span>
+        <span>{{ userData.birthday | date : "mediumDate" }}</span>
       </div>
       <div class="form-group">
         <label><strong>Gender:</strong></label>
-        <span>{{ getDisplayValue('gender', userData.gender) }}</span>
+        <span>{{ getDisplayValue("gender", userData.gender) }}</span>
       </div>
       <div class="form-group">
         <label><strong>Age:</strong></label>
@@ -38,21 +38,17 @@
       </div>
       <div class="form-group">
         <label><strong>Country:</strong></label>
-        <span>{{ getDisplayValue('country', userData.country) }}</span>
+        <span>{{ getDisplayValue("country", userData.country) }}</span>
       </div>
       <div class="form-group">
         <label><strong>Skills:</strong></label>
-        <span>{{ getDisplayValue('skills', userData.skills) }}</span>
+        <span>{{ getDisplayValue("skills", userData.skills) }}</span>
       </div>
-      <!-- <div class="button-group mt-3">
-        <button class="btn btn-primary me-2" (click)="onUpdate(userData)">Update</button>
-        <button class="btn btn-danger" (click)="onDelete()">Delete</button>
-      </div> -->
     </div>
   </div>
 
   <div *ngIf="!loading && !error && !userData">
     <p>No user data found. Please ensure you are logged in correctly.</p>
-            <a (click)="Nouser()" class="link" >Login</a>
+    <a (click)="Nouser()" class="link">Login</a>
   </div>
 </div>

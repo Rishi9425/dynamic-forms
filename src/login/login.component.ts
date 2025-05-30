@@ -1,6 +1,11 @@
 // login.component.ts
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  AbstractControl,
+} from '@angular/forms';
 import { Router } from '@angular/router';
 import { FormService } from '../service/form-service.service';
 import { ImportsModule } from './imports'; // Assuming this path is correct
@@ -108,21 +113,19 @@ export class LoginComponent implements OnInit {
       next: (response) => {
         console.log('Login response:', response);
         this.loading = false;
-        // The userId is now set in the service within the tap operator.
-        // We can safely navigate immediately.
         const currentUserId = this.formService.getCurrentUserId();
         if (currentUserId) {
           console.log('Navigating to dashboard with user ID:', currentUserId);
-          this.router.navigate(['/dashboard', currentUserId]);
+          this.router.navigate(['Home-Page']);
         } else {
           console.error('No valid user ID found after login.');
-          this.errorMessage = 'Login successful but user ID not found. Please try again.';
+          this.errorMessage =
+            'Login successful but user ID not found. Please try again.';
         }
       },
       error: (error) => {
         this.loading = false;
         console.error('Login failed:', error);
-
         if (error.error && error.error.message) {
           this.errorMessage = error.error.message;
         } else {
@@ -131,7 +134,6 @@ export class LoginComponent implements OnInit {
       },
     });
   }
-
   onRegisterSubmit(): void {
     if (this.registerForm.invalid) {
       this.registerForm.markAllAsTouched();
@@ -154,17 +156,15 @@ export class LoginComponent implements OnInit {
       next: (response) => {
         console.log('Registration and login response:', response);
         this.loading = false;
-        this.successMessage = 'Registration successful! Redirecting to dashboard...';
-
-        // The userId is now set in the service within the tap operator.
-        // We can safely navigate immediately.
+        this.successMessage =
+          'Registration successful! Redirecting to HomePage...';
         const currentUserId = this.formService.getCurrentUserId();
         if (currentUserId && currentUserId > 0) {
-          console.log('Registration successful, navigating to dashboard with user ID:', currentUserId);
-          this.router.navigate(['/dashboard', currentUserId]);
+          this.router.navigate(['/Home-Page']);
         } else {
           console.error('Registration successful but user ID not found.');
-          this.successMessage = 'Registration successful! Please login to continue.';
+          this.successMessage =
+            'Registration successful! Please login to continue.';
           this.isLoginMode = true;
           this.resetForms();
         }
@@ -176,7 +176,8 @@ export class LoginComponent implements OnInit {
         if (error.error && error.error.message) {
           this.errorMessage = error.error.message;
         } else if (error.status === 400) {
-          this.errorMessage = 'Username or email already exists, or invalid data provided.';
+          this.errorMessage =
+            'Username or email already exists, or invalid data provided.';
         } else {
           this.errorMessage = 'Registration failed. Please try again.';
         }

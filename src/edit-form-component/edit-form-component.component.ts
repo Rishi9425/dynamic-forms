@@ -47,7 +47,13 @@ export class EditFormComponentComponent implements OnInit {
       .getFormStructure()
       .then((data) => {
         // Filter out username and email if they are part of the form structure for editing
-        this.formStructure = data.filter(control => control.name !== 'username' && control.name !== 'email' && control.name !== 'password' && control.name !== 'confirmPassword');
+        this.formStructure = data.filter(
+          (control) =>
+            control.name !== 'username' &&
+            control.name !== 'email' &&
+            control.name !== 'password' &&
+            control.name !== 'confirmPassword'
+        );
         this.loadExistingFormData();
       })
       .catch((err) => {
@@ -93,124 +99,134 @@ export class EditFormComponentComponent implements OnInit {
   // Helper method to create date without timezone issues
   private createLocalDate(dateValue: any): Date | null {
     if (!dateValue) return null;
-    
+
     if (dateValue instanceof Date) {
       // If it's already a Date object, create a new date with local timezone
-      return new Date(dateValue.getFullYear(), dateValue.getMonth(), dateValue.getDate());
+      return new Date(
+        dateValue.getFullYear(),
+        dateValue.getMonth(),
+        dateValue.getDate()
+      );
     }
-    
+
     if (typeof dateValue === 'string') {
       // Handle string dates - parse and create local date
       const parsedDate = new Date(dateValue);
       if (!isNaN(parsedDate.getTime())) {
         // Create a new date using the parsed date's components to avoid timezone issues
-        return new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate());
+        return new Date(
+          parsedDate.getFullYear(),
+          parsedDate.getMonth(),
+          parsedDate.getDate()
+        );
       }
     }
-    
+
     return null;
   }
 
   // Helper method to format date for submission (YYYY-MM-DD format)
   private formatDateForSubmission(date: Date): string {
     if (!date || !(date instanceof Date)) return '';
-    
+
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
-    
+
     return `${year}-${month}-${day}`;
   }
 
- private initFormWithData(): void {
-  let formGroup: Record<string, any> = {};
+  private initFormWithData(): void {
+    let formGroup: Record<string, any> = {};
 
-  this.formStructure.forEach((control) => {
-    const controlValidators = this.getValidators(control);
-    let value = this.getExistingValue(control.name);
+    this.formStructure.forEach((control) => {
+      const controlValidators = this.getValidators(control);
+      let value = this.getExistingValue(control.name);
 
-    console.log(
-      `Processing field ${control.name}:`,
-      value,
-      'Type:',
-      control.type
-    );
+      console.log(
+        `Processing field ${control.name}:`,
+        value,
+        'Type:',
+        control.type
+      );
 
-    if (control.type === 'date' && value) {
-      // Use the helper method to create local date
-      value = this.createLocalDate(value);
-      console.log(`Date field ${control.name} processed to:`, value);
-    } else if (control.type === 'multiselect' && value) {
-      // Fix for multiselect - handle skills properly
-      if (typeof value === 'string' && value.trim() !== '') {
-        // Split by comma and clean up each skill
-        const skillsArray = value.split(',')
-          .map((item: string) => item.trim().toLowerCase())
-          .filter((item: string) => item !== '' && item !== 'null'); // Remove empty and null values
-        value = skillsArray;
-      } else if (Array.isArray(value)) {
-        // If already an array, clean it up
-        value = value.filter((item: any) => item !== null && item !== '' && item !== 'null')
-          .map((item: any) => typeof item === 'string' ? item.toLowerCase().trim() : item);
-      } else {
-        value = []; // Default to empty array
+      if (control.type === 'date' && value) {
+        value = this.createLocalDate(value);
+        console.log(`Date field ${control.name} processed to:`, value);
+      } else if (control.type === 'multiselect' && value) {
+        if (typeof value === 'string' && value.trim() !== '') {
+          const skillsArray = value
+            .split(',')
+            .map((item: string) => item.trim().toLowerCase())
+            .filter((item: string) => item !== '' && item !== 'null');
+          value = skillsArray;
+        } else if (Array.isArray(value)) {
+          value = value
+            .filter(
+              (item: any) => item !== null && item !== '' && item !== 'null'
+            )
+            .map((item: any) =>
+              typeof item === 'string' ? item.toLowerCase().trim() : item
+            );
+        } else {
+          value = [];
+        }
+      } else if (control.type === 'checkbox') {
+        value =
+          typeof value === 'string' ? value.toLowerCase() === 'true' : !!value;
+      } else if (control.type === 'radio' && control.name === 'gender') {
+        if (typeof value === 'string') {
+          value = value.toLowerCase().trim() === 'male';
+        } else {
+          value = !!value;
+        }
+      } else if (control.type === 'select' && control.name === 'country') {
+        if (typeof value === 'string') {
+          const countryMap: { [key: string]: number } = {
+            india: 1,
+            usa: 2,
+            canada: 3,
+          };
+          value = countryMap[value.toLowerCase().trim()] || 1;
+        } else if (typeof value !== 'number') {
+          value = 1;
+        }
+      } else if (control.type === 'number' && value) {
+        value = typeof value === 'string' ? parseInt(value) || 0 : value;
       }
-    } else if (control.type === 'checkbox') {
-      value =
-        typeof value === 'string' ? value.toLowerCase() === 'true' : !!value;
-    } else if (control.type === 'radio' && control.name === 'gender') {
-      if (typeof value === 'string') {
-        value = value.toLowerCase().trim() === 'male';
-      } else {
-        value = !!value;
-      }
-    } else if (control.type === 'select' && control.name === 'country') {
-      if (typeof value === 'string') {
-        const countryMap: { [key: string]: number } = {
-          india: 1,
-          usa: 2,
-          canada: 3,
-        };
-        value = countryMap[value.toLowerCase().trim()] || 1;
-      } else if (typeof value !== 'number') {
-        value = 1; 
-      }
-    } else if (control.type === 'number' && value) {
-      value = typeof value === 'string' ? parseInt(value) || 0 : value;
-    }
 
-    formGroup[control.name] = [
-      value !== undefined && value !== null ? value : control.value || '',
-      controlValidators,
-    ];
-  });
+      formGroup[control.name] = [
+        value !== undefined && value !== null ? value : control.value || '',
+        controlValidators,
+      ];
+    });
 
-  this.dynamicForm = this.fb.group(formGroup);
-  console.log('Form initialized with values:', this.dynamicForm.value);
-}
+    this.dynamicForm = this.fb.group(formGroup);
+    console.log('Form initialized with values:', this.dynamicForm.value);
+  }
 
   private getExistingValue(fieldName: string): any {
-  if (!this.existingFormData) return null;
+    if (!this.existingFormData) return null;
 
-  const fieldMapping: { [key: string]: string } = {
-    name: 'name',
-    description: 'description',
-    age: 'age',
-    birthday: 'birthday',
-    gender: 'gender',
-    country: 'country',
-    skills: 'skills', // Changed from 'Skills' to 'skills' to match your JSON
-  };
+    const fieldMapping: { [key: string]: string } = {
+      name: 'name',
+      description: 'description',
+      age: 'age',
+      birthday: 'birthday',
+      gender: 'gender',
+      country: 'country',
+      skills: 'skills',
+    };
 
-  const backendFieldName = fieldMapping[fieldName] || fieldName;
-  const value = this.existingFormData[backendFieldName];
+    const backendFieldName = fieldMapping[fieldName] || fieldName;
+    const value = this.existingFormData[backendFieldName];
 
-  console.log(
-    `Getting value for ${fieldName} (backend: ${backendFieldName}):`,
-    value
-  );
-  return value;
-}
+    console.log(
+      `Getting value for ${fieldName} (backend: ${backendFieldName}):`,
+      value
+    );
+    return value;
+  }
 
   private getValidators(control: IFormStructure): any[] {
     if (!control.validations || !control.validations.length) return [];
@@ -265,27 +281,28 @@ export class EditFormComponentComponent implements OnInit {
     console.log('Form data before processing:', this.dynamicForm.value);
 
     this.submitting = true;
-    
-    // Create a new object to send, excluding username and email
+
     const formDataToSend = { ...this.dynamicForm.value };
-    
-    // Process date fields before submission
+
     this.formStructure.forEach((control) => {
       if (control.type === 'date' && formDataToSend[control.name]) {
         const dateValue = formDataToSend[control.name];
         if (dateValue instanceof Date) {
-          // Format date as YYYY-MM-DD string to avoid timezone issues
-          formDataToSend[control.name] = this.formatDateForSubmission(dateValue);
-          console.log(`Date field ${control.name} formatted for submission:`, formDataToSend[control.name]);
+          formDataToSend[control.name] =
+            this.formatDateForSubmission(dateValue);
+          console.log(
+            `Date field ${control.name} formatted for submission:`,
+            formDataToSend[control.name]
+          );
         }
       }
     });
-    
+
     // Remove excluded fields
-    delete formDataToSend.username; // Exclude username
-    delete formDataToSend.email;    // Exclude email
-    delete formDataToSend.password; // Exclude password if present
-    delete formDataToSend.confirmPassword; // Exclude confirmPassword if present
+    delete formDataToSend.username;
+    delete formDataToSend.email;
+    delete formDataToSend.password;
+    delete formDataToSend.confirmPassword;
 
     console.log('Final form data to send:', formDataToSend);
 
@@ -298,13 +315,12 @@ export class EditFormComponentComponent implements OnInit {
       error: (error) => {
         console.error('Error updating form:', error);
         this.submitting = false;
-        // Optionally display an error message to the user
       },
     });
   }
 
   cancel(): void {
-     const userId = this.formService.getCurrentUserId();
-   this.router.navigate(['/dashboard', userId])
+    const userId = this.formService.getCurrentUserId();
+    this.router.navigate(['/dashboard', userId]);
   }
 }

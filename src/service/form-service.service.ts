@@ -3,11 +3,16 @@ import { IFormStructure } from '../domain/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, switchMap, tap } from 'rxjs';
 import { data } from '../assets/data.json';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class FormService {
+  private authStatusSubject = new BehaviorSubject<boolean>(
+    this.isAuthenticated()
+  );
+  public authStatusChanged = this.authStatusSubject.asObservable();
   private formtype = data;
   private apiUrl = 'https://localhost:5263/api/forms';
   private token: string | null = null;
@@ -17,7 +22,7 @@ export class FormService {
   constructor(private http: HttpClient) {
     this.token = localStorage.getItem('jwt_token');
     this.currentUserId = localStorage.getItem('current_user_id');
-    this.username = localStorage.getItem('username'); 
+    this.username = localStorage.getItem('username');
   }
 
   setToken(token: string): void {
@@ -59,7 +64,7 @@ export class FormService {
   clearToken(): void {
     this.token = null;
     this.currentUserId = null;
-    this.username = null; 
+    this.username = null;
     localStorage.removeItem('jwt_token');
     localStorage.removeItem('current_user_id');
     localStorage.removeItem('username');
@@ -69,7 +74,7 @@ export class FormService {
     if (this.token) {
       return new HttpHeaders({
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.token}`,
+        Authorization: `Bearer ${this.token}`,
       });
     }
     return new HttpHeaders({
@@ -82,20 +87,34 @@ export class FormService {
   }
 
   // New method for editing password with current password verification
-  editPassword(userId: number, passwordData: { 
-    currentPassword: string; 
-    newPassword: string; 
-    confirmPassword: string 
-  }): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/Update-password/${userId}`, passwordData, {
-      headers: this.getAuthHeaders()
-    });
+  editPassword(
+    userId: number,
+    passwordData: {
+      currentPassword: string;
+      newPassword: string;
+      confirmPassword: string;
+    }
+  ): Observable<any> {
+    return this.http.put<any>(
+      `${this.apiUrl}/Update-password/${userId}`,
+      passwordData,
+      {
+        headers: this.getAuthHeaders(),
+      }
+    );
   }
 
   // Existing method for changing password (keep for backward compatibility)
-  forgotpassword(passwordData: { email: string; newPassword: string; confirmPassword: string }): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/forgot-password`, passwordData, {
-    });
+  forgotpassword(passwordData: {
+    email: string;
+    newPassword: string;
+    confirmPassword: string;
+  }): Observable<any> {
+    return this.http.put<any>(
+      `${this.apiUrl}/forgot-password`,
+      passwordData,
+      {}
+    );
   }
 
   getFormStructure(): Promise<IFormStructure[]> {
@@ -103,21 +122,28 @@ export class FormService {
   }
 
   getFormsFromBackend(): Observable<any[]> {
-    return this.http.get<any[]>(this.apiUrl, { headers: this.getAuthHeaders() });
+    return this.http.get<any[]>(this.apiUrl, {
+      headers: this.getAuthHeaders(),
+    });
   }
 
   getFormByUserId(Id: number): Observable<any> {
     if (isNaN(Id)) {
       console.error('Invalid user ID provided for getFormByUserId:', Id);
-      return new Observable(observer => observer.error('Invalid user ID'));
+      return new Observable((observer) => observer.error('Invalid user ID'));
     }
     return this.http.get<any>(`${this.apiUrl}/${Id}`, {
-      headers: this.getAuthHeaders()
+      headers: this.getAuthHeaders(),
     });
   }
 
   // Updated register method - only requires username, email, password, and optional name
-  register(registrationData: { username: string; email: string; password: string; name?: string }): Observable<any> {
+  register(registrationData: {
+    username: string;
+    email: string;
+    password: string;
+    name?: string;
+  }): Observable<any> {
     console.log('Registration data:', registrationData);
     return this.http.post<any>(`${this.apiUrl}/register`, registrationData);
   }
@@ -130,7 +156,7 @@ export class FormService {
           this.setToken(response.token);
           console.log('Token set from login response.');
         }
-        
+
         if (response.userId) {
           this.setCurrentUserId(response.userId.toString());
           console.log('User ID stored from login response:', response.userId);
@@ -141,17 +167,28 @@ export class FormService {
         // Store username from login response or use the credentials username
         if (response.username) {
           this.setUsername(response.username);
-          console.log('Username stored from login response:', response.username);
+          console.log(
+            'Username stored from login response:',
+            response.username
+          );
         } else {
           this.setUsername(credentials.username);
-          console.log('Username stored from login credentials:', credentials.username);
+          console.log(
+            'Username stored from login credentials:',
+            credentials.username
+          );
         }
       })
     );
   }
 
   // Updated registerAndLogin method
-  registerAndLogin(registrationData: { username: string; email: string; password: string; name?: string }): Observable<any> {
+  registerAndLogin(registrationData: {
+    username: string;
+    email: string;
+    password: string;
+    name?: string;
+  }): Observable<any> {
     return this.register(registrationData).pipe(
       tap((registerResponse) => {
         if (registerResponse.id) {
@@ -160,28 +197,31 @@ export class FormService {
         }
         // Store username from registration
         if (registerResponse.username || registrationData.username) {
-          this.setUsername(registerResponse.username || registrationData.username);
-          console.log('Username stored from registration:', registerResponse.username || registrationData.username);
+          this.setUsername(
+            registerResponse.username || registrationData.username
+          );
+          console.log(
+            'Username stored from registration:',
+            registerResponse.username || registrationData.username
+          );
         }
       }),
       switchMap((registerResponse) => {
         const loginCredentials = {
           username: registrationData.username,
-          password: registrationData.password
+          password: registrationData.password,
         };
         return this.login(loginCredentials);
       })
     );
   }
 
-
   submitFormData(formData: any): Observable<any> {
-  
     const registrationData = {
-      username: formData.username || formData.email, 
+      username: formData.username || formData.email,
       email: formData.email,
       password: formData.password,
-      name: formData.name
+      name: formData.name,
     };
 
     return this.registerAndLogin(registrationData);
@@ -200,75 +240,77 @@ export class FormService {
 
   deleteFormData(id: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/${id}`, {
-      headers: this.getAuthHeaders()
+      headers: this.getAuthHeaders(),
     });
   }
 
   private transformFormData(formData: any, excludeFields: string[] = []): any {
-  const transformed: any = {};
+    const transformed: any = {};
 
-  const fieldMappings: { [key: string]: string } = {
-    'username': 'Username',
-    'name': 'Name',
-    'email': 'Email',
-    'description': 'Description',
-    'birthday': 'Birthday',
-    'gender': 'Gender',
-    'age': 'Age',
-    'country': 'Country',
-    'skills': 'Skills', 
-    'password': 'Password'
-  };
+    const fieldMappings: { [key: string]: string } = {
+      username: 'Username',
+      name: 'Name',
+      email: 'Email',
+      description: 'Description',
+      birthday: 'Birthday',
+      gender: 'Gender',
+      age: 'Age',
+      country: 'Country',
+      skills: 'Skills',
+      password: 'Password',
+    };
 
-  for (const [angularField, backendField] of Object.entries(fieldMappings)) {
-    if (excludeFields.includes(angularField)) continue;
+    for (const [angularField, backendField] of Object.entries(fieldMappings)) {
+      if (excludeFields.includes(angularField)) continue;
 
-    const fieldValue = formData[angularField];
-    const fieldConfig = this.getFieldConfig(angularField);
+      const fieldValue = formData[angularField];
+      const fieldConfig = this.getFieldConfig(angularField);
 
-    if (fieldValue !== undefined && fieldValue !== null) {
-      switch (fieldConfig?.type) {
-        case 'text':
-        case 'email':
-        case 'password':
-        case 'textarea':
-          transformed[backendField] = String(fieldValue || '');
-          break;
+      if (fieldValue !== undefined && fieldValue !== null) {
+        switch (fieldConfig?.type) {
+          case 'text':
+          case 'email':
+          case 'password':
+          case 'textarea':
+            transformed[backendField] = String(fieldValue || '');
+            break;
 
-        case 'number':
-          transformed[backendField] = this.parseNumber(fieldValue);
-          break;
+          case 'number':
+            transformed[backendField] = this.parseNumber(fieldValue);
+            break;
 
-        case 'date':
-          transformed[backendField] = this.formatDateForBackend(fieldValue);
-          break;
+          case 'date':
+            transformed[backendField] = this.formatDateForBackend(fieldValue);
+            break;
 
-        case 'radio':
-        case 'select':
-          transformed[backendField] = this.convertOptionToString(fieldValue, fieldConfig);
-          break;
+          case 'radio':
+          case 'select':
+            transformed[backendField] = this.convertOptionToString(
+              fieldValue,
+              fieldConfig
+            );
+            break;
 
-        case 'multiselect':
-          transformed[backendField] = this.convertMultiselectToString(fieldValue, fieldConfig);
-          break;
+          case 'multiselect':
+            transformed[backendField] = this.convertMultiselectToString(
+              fieldValue,
+              fieldConfig
+            );
+            break;
 
-        case 'checkbox':
-          transformed[backendField] = Boolean(fieldValue);
-          break;
+          case 'checkbox':
+            transformed[backendField] = Boolean(fieldValue);
+            break;
 
-        default:
-          transformed[backendField] = fieldValue;
-          break;
+          default:
+            transformed[backendField] = fieldValue;
+            break;
+        }
       }
     }
+
+    return transformed;
   }
-
-  return transformed;
-}
-
-
-
-
   private parseNumber(value: any): number {
     if (value === null || value === undefined || value === '') {
       return 0;
@@ -289,11 +331,9 @@ export class FormService {
     } else {
       date = new Date();
     }
-
     if (isNaN(date.getTime())) {
       date = new Date();
     }
-
     return date.toISOString().split('T')[0];
   }
 
@@ -303,7 +343,8 @@ export class FormService {
     }
 
     const matchingOption = field.options.find(
-      (option) => option.value === value || String(option.value) === String(value)
+      (option) =>
+        option.value === value || String(option.value) === String(value)
     );
 
     if (matchingOption) {
@@ -321,7 +362,10 @@ export class FormService {
     return '';
   }
 
-  private convertMultiselectToString(value: any, field: IFormStructure): string {
+  private convertMultiselectToString(
+    value: any,
+    field: IFormStructure
+  ): string {
     if (!value || !field.options || field.options.length === 0) {
       return '';
     }
@@ -333,7 +377,8 @@ export class FormService {
     if (Array.isArray(value)) {
       const labels = value.map((val) => {
         const matchingOption = field.options!.find(
-          (option) => option.value === val || String(option.value) === String(val)
+          (option) =>
+            option.value === val || String(option.value) === String(val)
         );
         return matchingOption ? matchingOption.label : String(val);
       });
@@ -347,22 +392,9 @@ export class FormService {
     return this.formtype.find((field) => field.name === fieldName);
   }
 
-  getFieldOptions(fieldName: string): Array<{ label: string; value: any }> {
-    const field = this.getFieldConfig(fieldName);
-    return field?.options || [];
-  }
-
-  getFieldDefaultValue(fieldName: string): any {
-    const field = this.getFieldConfig(fieldName);
-    return field?.value;
-  }
-
   getFormById(id: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${id}`, {
-      headers: this.getAuthHeaders()
+      headers: this.getAuthHeaders(),
     });
   }
-
-
-
 }

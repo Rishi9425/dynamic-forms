@@ -1,19 +1,32 @@
 <div class="login-container">
   <div class="login-card">
-    <p-card [header]="isLoginMode ? 'Login' : 'Register'" styleClass="login-form-card">
-      <form *ngIf="isLoginMode" [formGroup]="loginForm" (ngSubmit)="onLoginSubmit()">
+    <p-card
+      [header]="isLoginMode ? 'Login' : 'Register'"
+      styleClass="login-form-card"
+    >
+      <form
+        *ngIf="isLoginMode"
+        [formGroup]="loginForm"
+        (ngSubmit)="onLoginSubmit()"
+      >
         <div class="form-field">
           <label for="username">Username</label>
           <input
-            pInputText 
+            pInputText
             id="username"
             formControlName="username"
             placeholder="Enter your username"
-            [class.ng-invalid]="loginForm.get('username')?.invalid && loginForm.get('username')?.touched"
+            [class.ng-invalid]="
+              loginForm.get('username')?.invalid &&
+              loginForm.get('username')?.touched
+            "
           />
           <small
             class="error-message"
-            *ngIf="loginForm.get('username')?.invalid && loginForm.get('username')?.touched"
+            *ngIf="
+              loginForm.get('username')?.invalid &&
+              loginForm.get('username')?.touched
+            "
           >
             <span *ngIf="loginForm.get('username')?.errors?.['required']">
               Username is required
@@ -32,12 +45,18 @@
             placeholder="Enter your password"
             [feedback]="false"
             id="password"
-            [ngStyle]="{'width': '100%'}"
-            [class.ng-invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+            [ngStyle]="{ width: '100%' }"
+            [class.ng-invalid]="
+              loginForm.get('password')?.invalid &&
+              loginForm.get('password')?.touched
+            "
           ></p-password>
           <small
             class="error-message"
-            *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+            *ngIf="
+              loginForm.get('password')?.invalid &&
+              loginForm.get('password')?.touched
+            "
           >
             Password is required
           </small>
@@ -58,26 +77,36 @@
         </div>
 
         <div class="register-link">
-          <p>Don't have an account?
+          <p>
+            Don't have an account?
             <a (click)="toggleMode()" class="link">Register here</a>
           </p>
         </div>
       </form>
 
-      <form *ngIf="!isLoginMode" [formGroup]="registerForm" (ngSubmit)="onRegisterSubmit()">
+      <form
+        *ngIf="!isLoginMode"
+        [formGroup]="registerForm"
+        (ngSubmit)="onRegisterSubmit()"
+      >
         <div class="form-field">
           <label for="regUsername">Username</label>
           <input
             pInputText
             id="regUsername"
-            
             formControlName="username"
             placeholder="Choose a username"
-            [class.ng-invalid]="registerForm.get('username')?.invalid && registerForm.get('username')?.touched"
+            [class.ng-invalid]="
+              registerForm.get('username')?.invalid &&
+              registerForm.get('username')?.touched
+            "
           />
           <small
             class="error-message"
-            *ngIf="registerForm.get('username')?.invalid && registerForm.get('username')?.touched"
+            *ngIf="
+              registerForm.get('username')?.invalid &&
+              registerForm.get('username')?.touched
+            "
           >
             <span *ngIf="registerForm.get('username')?.errors?.['required']">
               Username is required
@@ -98,11 +127,17 @@
             id="regEmail"
             formControlName="email"
             placeholder="Enter your email"
-            [class.ng-invalid]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+            [class.ng-invalid]="
+              registerForm.get('email')?.invalid &&
+              registerForm.get('email')?.touched
+            "
           />
           <small
             class="error-message"
-            *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+            *ngIf="
+              registerForm.get('email')?.invalid &&
+              registerForm.get('email')?.touched
+            "
           >
             Please enter a valid email address
           </small>
@@ -115,11 +150,17 @@
             [toggleMask]="true"
             placeholder="Enter your password"
             [feedback]="true"
-            [class.ng-invalid]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+            [class.ng-invalid]="
+              registerForm.get('password')?.invalid &&
+              registerForm.get('password')?.touched
+            "
           ></p-password>
           <small
             class="error-message"
-            *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+            *ngIf="
+              registerForm.get('password')?.invalid &&
+              registerForm.get('password')?.touched
+            "
           >
             Password must be at least 8 characters long
           </small>
@@ -133,17 +174,26 @@
             id="password"
             placeholder="Confirm your password"
             [feedback]="false"
-            [class.ng-invalid]="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched"
-           
+            [class.ng-invalid]="
+              registerForm.get('confirmPassword')?.invalid &&
+              registerForm.get('confirmPassword')?.touched
+            "
           ></p-password>
           <small
             class="error-message"
-            *ngIf="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched"
+            *ngIf="
+              registerForm.get('confirmPassword')?.invalid &&
+              registerForm.get('confirmPassword')?.touched
+            "
           >
-            <span *ngIf="registerForm.get('confirmPassword')?.errors?.['required']">
+            <span
+              *ngIf="registerForm.get('confirmPassword')?.errors?.['required']"
+            >
               Please confirm your password
             </span>
-            <span *ngIf="registerForm.get('confirmPassword')?.errors?.['passwordMismatch']">
+            <span
+              *ngIf="registerForm.get('confirmPassword')?.errors?.['passwordMismatch']"
+            >
               Passwords do not match
             </span>
           </small>
@@ -160,7 +210,8 @@
         </div>
 
         <div class="register-link">
-          <p>Already have an account?
+          <p>
+            Already have an account?
             <a (click)="toggleMode()" class="link">Login here</a>
           </p>
         </div>
@@ -169,13 +220,21 @@
       <p-messages
         *ngIf="errorMessage"
         severity="error"
-        [value]="[{severity:'error', summary: isLoginMode ? 'Login Failed' : 'Registration Failed', detail: errorMessage}]"
+        [value]="[
+          {
+            severity: 'error',
+            summary: isLoginMode ? 'Login Failed' : 'Registration Failed',
+            detail: errorMessage
+          }
+        ]"
       ></p-messages>
 
       <p-messages
         *ngIf="successMessage"
         severity="success"
-        [value]="[{severity:'success', summary:'Success', detail: successMessage}]"
+        [value]="[
+          { severity: 'success', summary: 'Success', detail: successMessage }
+        ]"
       ></p-messages>
     </p-card>
   </div>

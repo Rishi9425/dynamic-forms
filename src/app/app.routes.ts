@@ -6,6 +6,7 @@ import { DashboardComponent } from '../dashboard/dashboard.component';
 import {  forgetPasswordComponent } from '../forget-password/forget-password.component';
 import { UpdatePasswordComponent } from '../edit-password/edit-password.component';
 import { authGuard } from '../guard/authguard';
+import { HomePageComponent } from '../home-page/home-page.component';
 
 export const routes: Routes = [
   {
@@ -40,7 +41,12 @@ export const routes: Routes = [
       import('../edit-password/edit-password.component').then((m) => m.UpdatePasswordComponent),
   
     
-  }
+  },
+ {
+    path: 'Home-Page',
+    component:HomePageComponent,
+
+  },
 ];
 
 

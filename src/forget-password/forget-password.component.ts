@@ -97,7 +97,6 @@ changePasswordForm: FormGroup;
   }
 
   onCancel() {
-   // or wherever you want to navigate back
       this.router.navigate(['/']);
   }
 
