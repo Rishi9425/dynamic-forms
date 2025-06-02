@@ -33,6 +33,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   isLoggedIn = false;
   username = '';
   toggleUserDropdown = false;
+  profileImage: string | null = null; // Add this property
   private routerSubscription: Subscription = new Subscription();
   private authSubscription: Subscription = new Subscription();
 
@@ -61,7 +62,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
       }
     );
   }
-
   // Setup router subscription to refresh navbar on route changes
   setupRouterSubscription() {
     this.routerSubscription = this.router.events
@@ -72,24 +72,31 @@ export class NavbarComponent implements OnInit, OnDestroy {
         if (currentLoginStatus !== this.isLoggedIn) {
           this.refreshNavbar();
         }
+        // Always attempt to load user data on navigation end to ensure image is up-to-date
+        this.loadUserData();
       });
   }
 
   loadUserData(): void {
     const Id = this.formService.getCurrentUserId();
-    if (Id) {
+    if (Id && Id !== 0) { // Ensure ID is valid
       this.formService.getFormByUserId(Id).subscribe({
         next: (data) => {
           this.userData = data;
+          // Set the profile image from the fetched user data
+          this.profileImage = this.userData.profileImageBase64 || null;
           this.loading = false;
         },
         error: (err) => {
           console.error('Error fetching user data:', err);
           this.error = 'Failed to load user data. Please try again later.';
           this.loading = false;
+          this.profileImage = null; // Clear image on error
         },
       });
     } else {
+      this.userData = null; // Clear user data if no valid ID
+      this.profileImage = null; // Clear profile image
       this.error = 'No user ID found. Please log in.';
       this.loading = false;
     }
@@ -101,9 +108,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.username = this.formService.getUsername() || 'User';
     } else {
       this.username = '';
+      this.profileImage = null; // Clear profile image on logout
     }
-    console.log(this.username);
-    console.log(this.userInitial);
   }
 
   // Refresh navbar component when user logs in
@@ -113,6 +119,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.loadUserData();
     } else {
       this.userData = null;
+      this.profileImage = null;
     }
   }
 
@@ -133,7 +140,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.router.navigate(['/dashboard', userId]);
     } else {
       console.warn('User ID not found for dashboard navigation.');
-      this.router.navigate(['/dashboard']);
+  
     }
     this.toggleUserDropdown = false;
   }
@@ -143,6 +150,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.isLoggedIn = false;
     this.username = '';
     this.userData = null;
+    this.profileImage = null; // Ensure image is cleared on logout
     this.toggleUserDropdown = false;
     this.router.navigate(['/']);
     // Trigger navbar refresh after logout
@@ -159,15 +167,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.toggleUserDropdown = false;
   }
 
-  onUpdateProfile() {
-    const userId = this.formService.getCurrentUserId();
-    if (userId) {
-      this.router.navigate(['/edit', userId]);
-    } else {
-      console.warn('User ID not found for profile update.');
-    }
-    this.toggleUserDropdown = false;
-  }
 
   auth() {
     this.router.navigate(['/']);
@@ -180,8 +179,15 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.formService.deleteFormData(this.userData.id).subscribe({
         next: () => {
           this.userData = null;
+          this.profileImage = null; // Clear image on delete
           this.loading = false;
           console.log('Your data has been deleted.');
+          this.formService.clearToken(); // Clear token after successful delete
+          this.isLoggedIn = false;
+          this.username = '';
+          this.toggleUserDropdown = false;
+          this.router.navigate(['/']);
+          setTimeout(() => this.refreshNavbar(), 100);
         },
         error: (err) => {
           this.loading = false;
@@ -190,11 +196,5 @@ export class NavbarComponent implements OnInit, OnDestroy {
         },
       });
     }
-    this.formService.clearToken();
-    this.isLoggedIn = false;
-    this.username = '';
-    this.toggleUserDropdown = false;
-    this.router.navigate(['/']);
-    setTimeout(() => this.refreshNavbar(), 100);
   }
 }

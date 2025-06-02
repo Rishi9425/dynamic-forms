@@ -1,5 +1,60 @@
 <div class="dashboard-container">
-  <h2>Welcome to Your Dashboard!</h2>
+  <div class="dashboard-header">
+    <h2>Welcome to Your Dashboard!</h2>
+    <div class="profile-image-section" *ngIf="!loading && !error && userData">
+      <div class="image-container">
+        <img 
+          [src]="profileImage || 'assets/default-avatar.png'" 
+          alt="Profile Image" 
+          class="profile-image"
+          [class.editable]="isEditMode"
+          (click)="isEditMode && triggerImageUpload()"
+        >
+        <div class="image-overlay" *ngIf="isEditMode" (click)="triggerImageUpload()">
+          <i class="fas fa-camera"></i>
+          <span>Change Photo</span>
+        </div>
+      </div>
+      <input 
+        #fileInput 
+        type="file" 
+        accept="image/*" 
+        (change)="onImageSelected($event)" 
+        style="display: none;"
+      >
+    </div>
+  </div>
+
+  <!-- Image Crop Modal -->
+  <div class="modal-overlay" *ngIf="showCropModal" (click)="closeCropModal()">
+    <div class="crop-modal" (click)="$event.stopPropagation()">
+      <div class="crop-header">
+        <h3>Crop Your Profile Image</h3>
+        <button class="close-btn" (click)="closeCropModal()">&times;</button>
+      </div>
+      <div class="crop-container">
+        <canvas #cropCanvas></canvas>
+        <img #cropImage [src]="selectedImageUrl" style="display: none;" (load)="initializeCrop()">
+      </div>
+      <div class="crop-controls">
+        <div class="crop-sliders">
+          <label>Zoom: 
+            <input type="range" min="1" max="3" step="0.1" [(ngModel)]="cropSettings.scale" (input)="updateCrop()">
+          </label>
+          <label>X Position: 
+            <input type="range" min="-100" max="100" [(ngModel)]="cropSettings.x" (input)="updateCrop()">
+          </label>
+          <label>Y Position: 
+            <input type="range" min="-100" max="100" [(ngModel)]="cropSettings.y" (input)="updateCrop()">
+          </label>
+        </div>
+        <div class="crop-buttons">
+          <button class="btn btn-secondary" (click)="closeCropModal()">Cancel</button>
+          <button class="btn btn-primary" (click)="applyCrop()">Apply</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div *ngIf="loading" class="loading-message">
     <p>Loading your data...</p>
@@ -10,44 +65,159 @@
   </div>
 
   <div *ngIf="!loading && !error && userData" class="user-details">
-    <h3>Your Information</h3>
+    <div class="section-header">
+      <h3>Your Information</h3>
+      <div class="action-buttons">
+        <button 
+          *ngIf="!isEditMode" 
+          class="btn btn-primary edit-btn" 
+          (click)="toggleEditMode()"
+        >
+          <i class="fas fa-edit"></i> Edit Profile
+        </button>
+        <div *ngIf="isEditMode" class="edit-buttons">
+          <button 
+            class="btn btn-success save-btn" 
+            (click)="saveChanges()"
+            [disabled]="isSaving"
+          >
+            <i class="fas fa-save"></i> {{ isSaving ? 'Saving...' : 'Save' }}
+          </button>
+          <button 
+            class="btn btn-secondary cancel-btn" 
+            (click)="cancelEdit()"
+            [disabled]="isSaving"
+          >
+            <i class="fas fa-times"></i> Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div class="card p-4">
+      <!-- Name Field -->
       <div class="form-group">
         <label><strong>Name:</strong></label>
-        <span>{{ userData.name }}</span>
+        <span *ngIf="!isEditMode">{{ userData.name }}</span>
+        <input 
+          *ngIf="isEditMode" 
+          type="text" 
+          class="form-control" 
+          [(ngModel)]="editableData.name"
+          placeholder="Enter your name"
+        >
       </div>
+
+      <!-- Email Field (Not Editable) -->
       <div class="form-group">
         <label><strong>Email:</strong></label>
         <span>{{ userData.email }}</span>
       </div>
+
+      <!-- Description Field -->
       <div class="form-group">
         <label><strong>Description:</strong></label>
-        <span>{{ userData.description }}</span>
+        <span *ngIf="!isEditMode">{{ userData.description }}</span>
+        <textarea 
+          *ngIf="isEditMode" 
+          class="form-control" 
+          [(ngModel)]="editableData.description"
+          placeholder="Enter description"
+          rows="3"
+        ></textarea>
       </div>
+
+      <!-- Birthday Field -->
       <div class="form-group">
         <label><strong>Birthday:</strong></label>
-        <span>{{ userData.birthday | date : "mediumDate" }}</span>
+        <span *ngIf="!isEditMode">{{ userData.birthday | date : "mediumDate" }}</span>
+        <input 
+          *ngIf="isEditMode" 
+          type="date" 
+          class="form-control" 
+          [(ngModel)]="editableData.birthday"
+        >
       </div>
+
+      <!-- Gender Field -->
       <div class="form-group">
         <label><strong>Gender:</strong></label>
-        <span>{{ getDisplayValue("gender", userData.gender) }}</span>
+        <span *ngIf="!isEditMode">{{userData.gender}}</span>
+        <select 
+          *ngIf="isEditMode" 
+          class="form-control" 
+          [(ngModel)]="editableData.gender"
+        >
+          <option value="">Select Gender</option>
+          <option 
+            *ngFor="let option of getFieldOptions('gender')" 
+            [value]="option.value"
+          >
+            {{ option.label }}
+          </option>
+        </select>
       </div>
+
+      <!-- Age Field -->
       <div class="form-group">
         <label><strong>Age:</strong></label>
-        <span>{{ userData.age }}</span>
+        <span *ngIf="!isEditMode">{{ userData.age }}</span>
+        <input 
+          *ngIf="isEditMode" 
+          type="number" 
+          class="form-control" 
+          [(ngModel)]="editableData.age"
+          min="1" 
+          max="120"
+          placeholder="Enter your age"
+        >
       </div>
+
+      <!-- Country Field -->
       <div class="form-group">
         <label><strong>Country:</strong></label>
-        <span>{{ getDisplayValue("country", userData.country) }}</span>
+        <span *ngIf="!isEditMode">{{ getDisplayValue("country", userData.country) }}</span>
+        <select 
+          *ngIf="isEditMode" 
+          class="form-control" 
+          [(ngModel)]="editableData.country"
+        >
+          <option value="">Select Country</option>
+          <option 
+            *ngFor="let option of getFieldOptions('country')" 
+            [value]="option.value"
+          >
+            {{ option.label }}
+          </option>
+        </select>
       </div>
+
+      <!-- Skills Field -->
       <div class="form-group">
         <label><strong>Skills:</strong></label>
-        <span>{{ getDisplayValue("skills", userData.skills) }}</span>
+        <span *ngIf="!isEditMode">{{ getDisplayValue("skills", userData.skills) }}</span>
+        <div *ngIf="isEditMode" class="skills-container">
+          <div 
+            *ngFor="let option of getFieldOptions('skills')" 
+            class="skill-checkbox"
+          >
+            <label class="checkbox-label">
+              <input 
+                type="checkbox" 
+                [value]="option.value"
+                [checked]="isSkillSelected(option.value)"
+                (change)="toggleSkill(option.value, $event)"
+              >
+              <span class="checkmark"></span>
+              {{ option.label }}
+            </label>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <div *ngIf="!loading && !error && !userData">
+  <div *ngIf="!loading && !error && !userData" class="no-data-message">
     <p>No user data found. Please ensure you are logged in correctly.</p>
     <a (click)="Nouser()" class="link">Login</a>
   </div>

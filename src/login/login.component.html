@@ -155,15 +155,17 @@
               registerForm.get('password')?.touched
             "
           ></p-password>
-          <small
-            class="error-message"
-            *ngIf="
-              registerForm.get('password')?.invalid &&
-              registerForm.get('password')?.touched
-            "
-          >
-            Password must be at least 8 characters long
-          </small>
+          <small class="error-message" *ngIf="registerForm.get('password')?.touched && registerForm.get('password')?.errors">
+  <ng-container *ngIf="registerForm.get('password')?.errors?.['required']">
+    Password is required.
+  </ng-container>
+  <ng-container *ngIf="registerForm.get('password')?.errors?.['minlength']">
+    Password must be at least 8 characters long.
+  </ng-container>
+  <ng-container *ngIf="registerForm.get('password')?.errors?.['pattern']">
+    Password must contain at least one uppercase letter, one lowercase letter, one number, and one special symbol.
+  </ng-container>
+</small>
         </div>
 
         <div class="form-field">

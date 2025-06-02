@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { IFormStructure } from '../domain/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, switchMap, tap } from 'rxjs';
-import { data } from '../assets/data.json';
+import { data } from '../assets/data.json'; 
 import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
@@ -25,29 +25,16 @@ export class FormService {
     this.username = localStorage.getItem('username');
   }
 
-  setToken(token: string): void {
-    this.token = token;
-    localStorage.setItem('jwt_token', token);
-  }
-
-  setCurrentUserId(userId: string): void {
-    this.currentUserId = userId;
-    localStorage.setItem('current_user_id', userId);
-  }
-
-  // Add method to set username
   setUsername(Username: string): void {
     this.username = Username;
     localStorage.setItem('username', Username);
     console.log(Username);
   }
 
-  // Add method to get username
   getUsername(): string | null {
     return this.username || localStorage.getItem('username');
   }
 
-  // Add method to get first letter of username
   getUserInitial(): string {
     const currentUsername = this.getUsername();
     return currentUsername ? currentUsername.charAt(0).toUpperCase() : '';
@@ -58,17 +45,51 @@ export class FormService {
   }
 
   getCurrentUserId(): number {
-    return this.currentUserId ? Number(this.currentUserId) : 0;
+    return Number(this.currentUserId) ? Number(this.currentUserId) : 0;
   }
 
-  clearToken(): void {
-    this.token = null;
-    this.currentUserId = null;
-    this.username = null;
-    localStorage.removeItem('jwt_token');
-    localStorage.removeItem('current_user_id');
-    localStorage.removeItem('username');
-  }
+  private updateAuthStatus(): void {
+  this.authStatusSubject.next(this.isAuthenticated());
+}
+
+// Update your setToken method
+setToken(token: string): void {
+  this.token = token;
+  localStorage.setItem('jwt_token', token);
+  this.updateAuthStatus(); 
+}
+
+
+setCurrentUserId(userId: string): void {
+  this.currentUserId = userId;
+  localStorage.setItem('current_user_id', userId);
+   this.updateAuthStatus(); 
+}
+
+// Update your clearToken method
+clearToken(): void {
+  this.token = null;
+  this.currentUserId = null;
+  this.username = null;
+  localStorage.removeItem('jwt_token');
+  localStorage.removeItem('current_user_id');
+  localStorage.removeItem('username');
+  this.updateAuthStatus(); 
+}
+
+// Add a logout method for better organization
+logout(): void {
+  this.clearToken();
+}
+
+// Enhanced isAuthenticated method with better validation
+isAuthenticated(): boolean {
+  const token = this.token || localStorage.getItem('jwt_token');
+  const userId = this.currentUserId || localStorage.getItem('current_user_id');
+  return !!(token && userId);
+}
+
+
 
   private getAuthHeaders(): HttpHeaders {
     if (this.token) {
@@ -82,11 +103,6 @@ export class FormService {
     });
   }
 
-  isAuthenticated(): boolean {
-    return !!this.token && !!this.currentUserId;
-  }
-
-  // New method for editing password with current password verification
   editPassword(
     userId: number,
     passwordData: {
@@ -104,7 +120,6 @@ export class FormService {
     );
   }
 
-  // Existing method for changing password (keep for backward compatibility)
   forgotpassword(passwordData: {
     email: string;
     newPassword: string;
@@ -137,7 +152,6 @@ export class FormService {
     });
   }
 
-  // Updated register method - only requires username, email, password, and optional name
   register(registrationData: {
     username: string;
     email: string;
@@ -148,7 +162,6 @@ export class FormService {
     return this.http.post<any>(`${this.apiUrl}/register`, registrationData);
   }
 
-  // Updated login method - uses username instead of email
   login(credentials: { username: string; password: string }): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/login`, credentials).pipe(
       tap((response) => {
@@ -164,7 +177,6 @@ export class FormService {
           console.warn('Login response did not contain a user ID.');
         }
 
-        // Store username from login response or use the credentials username
         if (response.username) {
           this.setUsername(response.username);
           console.log(
@@ -182,7 +194,6 @@ export class FormService {
     );
   }
 
-  // Updated registerAndLogin method
   registerAndLogin(registrationData: {
     username: string;
     email: string;
@@ -195,7 +206,6 @@ export class FormService {
           this.setCurrentUserId(registerResponse.id.toString());
           console.log('User ID stored from registration:', registerResponse.id);
         }
-        // Store username from registration
         if (registerResponse.username || registrationData.username) {
           this.setUsername(
             registerResponse.username || registrationData.username
@@ -228,9 +238,11 @@ export class FormService {
   }
 
   updateFormData(id: number, formData: any): Observable<any> {
+    // Ensure profileImageBase64 is part of the transformed data
     const transformedData = {
       Id: id,
-      ...this.transformFormData(formData, ['username', 'email']), // exclude these fields
+      ...this.transformFormData(formData, ['username', 'email']), 
+      ProfileImageBase64: formData.profileImageBase64 || null, 
     };
 
     return this.http.put<any>(`${this.apiUrl}/${id}`, transformedData, {
@@ -258,6 +270,7 @@ export class FormService {
       country: 'Country',
       skills: 'Skills',
       password: 'Password',
+      profileImageBase64: 'ProfileImageBase64',
     };
 
     for (const [angularField, backendField] of Object.entries(fieldMappings)) {
@@ -303,7 +316,12 @@ export class FormService {
             break;
 
           default:
-            transformed[backendField] = fieldValue;
+            // For profileImageBase64, directly assign it if it's not a form field type
+            if (angularField === 'profileImageBase64') {
+              transformed[backendField] = fieldValue;
+            } else {
+              transformed[backendField] = fieldValue;
+            }
             break;
         }
       }
@@ -342,13 +360,27 @@ export class FormService {
       return String(value || '');
     }
 
+    // Special handling for country field (return value, not label)
+    if (field.name === 'country') {
+      if (typeof value === 'number') {
+        const option = field.options[value - 1]; // Assuming 1-based indexing
+        return option ? String(option.value) : '';
+      }
+
+      if (typeof value === 'string' && !isNaN(parseInt(value))) {
+        const numValue = parseInt(value);
+        const option = field.options[numValue - 1];
+        return option ? String(option.value) : '';
+      }
+    }
+
     const matchingOption = field.options.find(
       (option) =>
         option.value === value || String(option.value) === String(value)
     );
 
     if (matchingOption) {
-      return matchingOption.label;
+      return String(matchingOption.value); // Return the value, not the label, for backend storage
     }
 
     if (typeof value === 'string') {
@@ -356,10 +388,10 @@ export class FormService {
         (option) => option.label.toLowerCase() === value.toLowerCase()
       );
       if (matchingByLabel) {
-        return matchingByLabel.label;
+        return String(matchingByLabel.value); // Return the value, not the label
       }
     }
-    return '';
+    return String(value || ''); // Default to string representation of the value
   }
 
   private convertMultiselectToString(
@@ -375,14 +407,14 @@ export class FormService {
     }
 
     if (Array.isArray(value)) {
-      const labels = value.map((val) => {
+      const values = value.map((val) => {
         const matchingOption = field.options!.find(
           (option) =>
             option.value === val || String(option.value) === String(val)
         );
-        return matchingOption ? matchingOption.label : String(val);
+        return matchingOption ? String(matchingOption.value) : String(val); // Store values, not labels
       });
-      return labels.join(',');
+      return values.join(',');
     }
 
     return String(value);

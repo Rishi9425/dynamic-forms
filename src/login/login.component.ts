@@ -6,7 +6,7 @@ import {
   Validators,
   AbstractControl,
 } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { FormService } from '../service/form-service.service';
 import { ImportsModule } from './imports'; // Assuming this path is correct
 
@@ -24,15 +24,36 @@ export class LoginComponent implements OnInit {
   errorMessage = '';
   successMessage = '';
   isLoginMode = true;
+  private returnUrl: string = '/Home-Page';
 
   constructor(
     private fb: FormBuilder,
     private formService: FormService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
     this.initializeForms();
+    this.handleReturnUrl();
+    this.checkIfAlreadyAuthenticated();
+  }
+
+  private handleReturnUrl(): void {
+    // Get the return URL from route parameters or default to home page
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/Home-Page';
+    
+    // Clean up the return URL if it's pointing to login or root
+    if (this.returnUrl === '/login' || this.returnUrl === '/') {
+      this.returnUrl = '/Home-Page';
+    }
+  }
+
+  private checkIfAlreadyAuthenticated(): void {
+    // If user is already authenticated, redirect to home page
+    if (this.formService.isAuthenticated()) {
+      this.router.navigate(['/Home-Page'], { replaceUrl: true });
+    }
   }
 
   private initializeForms(): void {
@@ -53,7 +74,11 @@ export class LoginComponent implements OnInit {
         ],
         name: [''],
         email: ['', [Validators.required, Validators.email]],
-        password: ['', [Validators.required, Validators.minLength(6)]],
+        password: ['', [Validators.required, Validators.minLength(8),
+          Validators.pattern(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/
+    ),
+        ]],
         confirmPassword: ['', Validators.required],
       },
       { validators: this.passwordMatchValidator }
@@ -113,14 +138,15 @@ export class LoginComponent implements OnInit {
       next: (response) => {
         console.log('Login response:', response);
         this.loading = false;
-        const currentUserId = this.formService.getCurrentUserId();
-        if (currentUserId) {
-          console.log('Navigating to dashboard with user ID:', currentUserId);
-          this.router.navigate(['Home-Page']);
+        
+        // Check if authentication was successful
+        if (this.formService.isAuthenticated()) {
+          console.log('Login successful, navigating to:', this.returnUrl);
+          // Navigate to the return URL or home page, replace current history entry
+          this.router.navigate([this.returnUrl], { replaceUrl: true });
         } else {
-          console.error('No valid user ID found after login.');
-          this.errorMessage =
-            'Login successful but user ID not found. Please try again.';
+          console.error('Login response received but authentication failed.');
+          this.errorMessage = 'Login failed. Please try again.';
         }
       },
       error: (error) => {
@@ -134,6 +160,7 @@ export class LoginComponent implements OnInit {
       },
     });
   }
+
   onRegisterSubmit(): void {
     if (this.registerForm.invalid) {
       this.registerForm.markAllAsTouched();
@@ -156,15 +183,16 @@ export class LoginComponent implements OnInit {
       next: (response) => {
         console.log('Registration and login response:', response);
         this.loading = false;
-        this.successMessage =
-          'Registration successful! Redirecting to HomePage...';
-        const currentUserId = this.formService.getCurrentUserId();
-        if (currentUserId && currentUserId > 0) {
-          this.router.navigate(['/Home-Page']);
+        
+        // Check if authentication was successful after registration
+        if (this.formService.isAuthenticated()) {
+          this.successMessage = 'Registration successful! Redirecting to HomePage...';
+          console.log('Registration successful, navigating to Home-Page');
+          // Navigate to home page after successful registration, replace current history entry
+          this.router.navigate(['/Home-Page'], { replaceUrl: true });
         } else {
-          console.error('Registration successful but user ID not found.');
-          this.successMessage =
-            'Registration successful! Please login to continue.';
+          console.error('Registration successful but authentication failed.');
+          this.successMessage = 'Registration successful! Please login to continue.';
           this.isLoginMode = true;
           this.resetForms();
         }

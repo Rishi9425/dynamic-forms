@@ -102,8 +102,8 @@
     "name": "gender",
     "value": true,
     "options": [
-      { "label": "Male", "value": true },
-      { "label": "Female", "value": false }
+      { "label": "Male", "value": "Male" },
+      { "label": "Female", "value": "female" }
     ],
     "validations": []
   },
