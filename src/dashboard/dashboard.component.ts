@@ -36,8 +36,8 @@ export class DashboardComponent implements OnInit {
   isSaving = false;
 
   // Image properties
-  profileImage: string | null = null; // This will hold the Base64 image from DB
-  selectedImageUrl: string | null = null; // This holds the image selected for cropping
+  profileImage: string | null = null;
+  selectedImageUrl: string | null = null;
   showCropModal = false;
   cropSettings: CropSettings = {
     scale: 1,
@@ -61,18 +61,22 @@ export class DashboardComponent implements OnInit {
       });
   }
 
-  loadUserDataWithRetry(maxRetries: number = 3, currentRetry: number = 0): void {
+  loadUserDataWithRetry(maxRetries: number = 5, currentRetry: number = 0): void {
     const userId = this.formService.getCurrentUserId();
 
-    if (userId) {
+    if (userId && userId !== 0) {
       this.loadUserData(userId);
     } else if (currentRetry < maxRetries) {
+      console.log(`Retry ${currentRetry + 1}/${maxRetries} - Waiting for user ID...`);
       setTimeout(() => {
         this.loadUserDataWithRetry(maxRetries, currentRetry + 1);
-      }, 100 * (currentRetry + 1));
+      }, 200 * (currentRetry + 1)); // Increased delay and made it progressive
     } else {
+      console.error('Failed to get user ID after maximum retries');
       this.error = 'No user ID found. Please log in.';
       this.loading = false;
+      // Redirect to login if no user ID found
+      this.router.navigate(['/login']);
     }
   }
 
@@ -82,8 +86,8 @@ export class DashboardComponent implements OnInit {
         this.userData = data;
         this.initializeEditableData();
         this.loading = false;
-        // Load profile image from userData (fetched from backend)
         this.profileImage = this.userData.profileImageBase64 || null;
+        console.log('Dashboard: User data loaded, profile image:', this.profileImage ? 'exists' : 'null');
       },
       error: (err) => {
         console.error('Error fetching user data:', err);
@@ -106,7 +110,6 @@ export class DashboardComponent implements OnInit {
         country: this.userData.country || '',
         skills: this.userData.skills || '',
       };
-      // Store original data for cancel functionality
       console.log(this.userData.gender);
       this.originalData = { ...this.editableData };
     }
@@ -131,7 +134,7 @@ export class DashboardComponent implements OnInit {
     this.selectedImageUrl = null;
     this.showCropModal = false;
     // Revert profile image to original if not saved
-    this.loadUserData(this.formService.getCurrentUserId()); // Re-fetch or load from original userData
+    this.loadUserData(this.formService.getCurrentUserId());
   }
 
   saveChanges(): void {
@@ -144,7 +147,7 @@ export class DashboardComponent implements OnInit {
     const updateData = {
       ...this.editableData,
       id: userId,
-      profileImageBase64: this.profileImage, // Include the profile image
+      profileImageBase64: this.profileImage,
     };
 
     this.formService.updateFormData(userId, updateData).subscribe({
@@ -154,9 +157,11 @@ export class DashboardComponent implements OnInit {
         this.isSaving = false;
 
         // Refresh the page content by reloading user data
-        this.loadUserData(userId); // This is the key change
+        this.loadUserData(userId);
 
-        // Show success message (you can implement a toast service)
+        // IMPORTANT: Notify other components (especially navbar) about profile update
+        this.formService.notifyProfileUpdated();
+
         this.showSuccessMessage('Profile updated successfully!');
       },
       error: (err) => {
@@ -169,9 +174,7 @@ export class DashboardComponent implements OnInit {
   }
 
   showSuccessMessage(message: string): void {
-    // You can implement a proper toast/notification service
     console.log(message);
-    // For now, just clear any existing error
     this.error = null;
   }
 
@@ -282,7 +285,6 @@ export class DashboardComponent implements OnInit {
     const canvas = this.cropCanvas.nativeElement;
     const img = this.cropImage.nativeElement;
 
-    // Set canvas size
     canvas.width = 300;
     canvas.height = 300;
 
@@ -298,21 +300,17 @@ export class DashboardComponent implements OnInit {
 
     if (!ctx) return;
 
-    // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Calculate dimensions
     const size = Math.min(canvas.width, canvas.height);
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
 
-    // Apply transformations
     ctx.save();
     ctx.translate(centerX, centerY);
     ctx.scale(this.cropSettings.scale, this.cropSettings.scale);
     ctx.translate(this.cropSettings.x, this.cropSettings.y);
 
-    // Draw image
     const imgSize = Math.max(img.naturalWidth, img.naturalHeight);
     const scale = size / imgSize;
     const drawWidth = img.naturalWidth * scale;
@@ -321,7 +319,6 @@ export class DashboardComponent implements OnInit {
     ctx.drawImage(img, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
     ctx.restore();
 
-    // Draw crop circle overlay
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -333,9 +330,10 @@ export class DashboardComponent implements OnInit {
     if (!this.cropCanvas) return;
 
     const canvas = this.cropCanvas.nativeElement;
-    this.profileImage = canvas.toDataURL('image/jpeg', 0.8); // Get Base64
+    this.profileImage = canvas.toDataURL('image/jpeg', 0.8);
     this.closeCropModal();
-
+    
+    console.log('Image cropped and applied, new profile image length:', this.profileImage?.length);
   }
 
   closeCropModal(): void {
@@ -343,7 +341,6 @@ export class DashboardComponent implements OnInit {
     this.selectedImageUrl = null;
     this.cropSettings = { scale: 1, x: 0, y: 0 };
   }
-
 
   Nouser(): void {
     this.router.navigate(['/login']);

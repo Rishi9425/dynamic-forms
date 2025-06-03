@@ -3,7 +3,7 @@ import { IFormStructure } from '../domain/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, switchMap, tap } from 'rxjs';
 import { data } from '../assets/data.json'; 
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -13,6 +13,8 @@ export class FormService {
     this.isAuthenticated()
   );
   public authStatusChanged = this.authStatusSubject.asObservable();
+  private profileUpdateSubject = new Subject<void>();
+  public profileUpdated = this.profileUpdateSubject.asObservable();
   private formtype = data;
   private apiUrl = 'https://localhost:5263/api/forms';
   private token: string | null = null;
@@ -25,10 +27,15 @@ export class FormService {
     this.username = localStorage.getItem('username');
   }
 
+  notifyProfileUpdated(): void {
+    console.log('Service: Notifying profile update');
+    this.profileUpdateSubject.next();
+  }
+
   setUsername(Username: string): void {
     this.username = Username;
     localStorage.setItem('username', Username);
-    console.log(Username);
+    console.log('Username set:', Username);
   }
 
   getUsername(): string | null {
@@ -41,61 +48,67 @@ export class FormService {
   }
 
   getToken(): string | null {
-    return this.token;
+    return this.token || localStorage.getItem('jwt_token');
   }
 
   getCurrentUserId(): number {
-    return Number(this.currentUserId) ? Number(this.currentUserId) : 0;
+    if (this.currentUserId && !isNaN(Number(this.currentUserId))) {
+      return Number(this.currentUserId);
+    }
+    
+    // Then try from localStorage
+    const storedId = localStorage.getItem('current_user_id');
+    if (storedId && !isNaN(Number(storedId))) {
+      this.currentUserId = storedId; 
+      return Number(storedId);
+    }
+    
+    return 0;
   }
 
   private updateAuthStatus(): void {
-  this.authStatusSubject.next(this.isAuthenticated());
-}
+    this.authStatusSubject.next(this.isAuthenticated());
+  }
 
-// Update your setToken method
-setToken(token: string): void {
-  this.token = token;
-  localStorage.setItem('jwt_token', token);
-  this.updateAuthStatus(); 
-}
+  setToken(token: string): void {
+    this.token = token;
+    localStorage.setItem('jwt_token', token);
+    this.updateAuthStatus(); 
+  }
 
+  setCurrentUserId(userId: string): void {
+    this.currentUserId = userId;
+    localStorage.setItem('current_user_id', userId);
+    this.updateAuthStatus(); 
+    console.log('User ID set:', userId);
+  }
 
-setCurrentUserId(userId: string): void {
-  this.currentUserId = userId;
-  localStorage.setItem('current_user_id', userId);
-   this.updateAuthStatus(); 
-}
+  clearToken(): void {
+    this.token = null;
+    this.currentUserId = null;
+    this.username = null;
+    localStorage.removeItem('jwt_token');
+    localStorage.removeItem('current_user_id');
+    localStorage.removeItem('username');
+    this.updateAuthStatus(); 
+  }
 
-// Update your clearToken method
-clearToken(): void {
-  this.token = null;
-  this.currentUserId = null;
-  this.username = null;
-  localStorage.removeItem('jwt_token');
-  localStorage.removeItem('current_user_id');
-  localStorage.removeItem('username');
-  this.updateAuthStatus(); 
-}
+  logout(): void {
+    this.clearToken();
+  }
 
-// Add a logout method for better organization
-logout(): void {
-  this.clearToken();
-}
-
-// Enhanced isAuthenticated method with better validation
-isAuthenticated(): boolean {
-  const token = this.token || localStorage.getItem('jwt_token');
-  const userId = this.currentUserId || localStorage.getItem('current_user_id');
-  return !!(token && userId);
-}
-
-
+  isAuthenticated(): boolean {
+    const token = this.token || localStorage.getItem('jwt_token');
+    const userId = this.currentUserId || localStorage.getItem('current_user_id');
+    return !!(token && userId && !isNaN(Number(userId)));
+  }
 
   private getAuthHeaders(): HttpHeaders {
-    if (this.token) {
+    const token = this.getToken();
+    if (token) {
       return new HttpHeaders({
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.token}`,
+        Authorization: `Bearer ${token}`,
       });
     }
     return new HttpHeaders({
@@ -143,7 +156,7 @@ isAuthenticated(): boolean {
   }
 
   getFormByUserId(Id: number): Observable<any> {
-    if (isNaN(Id)) {
+    if (isNaN(Id) || Id <= 0) {
       console.error('Invalid user ID provided for getFormByUserId:', Id);
       return new Observable((observer) => observer.error('Invalid user ID'));
     }
@@ -165,13 +178,17 @@ isAuthenticated(): boolean {
   login(credentials: { username: string; password: string }): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/login`, credentials).pipe(
       tap((response) => {
+        console.log('Login response received:', response);
+        
         if (response.token) {
           this.setToken(response.token);
           console.log('Token set from login response.');
         }
 
         if (response.userId) {
-          this.setCurrentUserId(response.userId.toString());
+          // Ensure we store as string but it's a valid number
+          const userIdString = String(response.userId);
+          this.setCurrentUserId(userIdString);
           console.log('User ID stored from login response:', response.userId);
         } else {
           console.warn('Login response did not contain a user ID.');
@@ -179,16 +196,10 @@ isAuthenticated(): boolean {
 
         if (response.username) {
           this.setUsername(response.username);
-          console.log(
-            'Username stored from login response:',
-            response.username
-          );
+          console.log('Username stored from login response:', response.username);
         } else {
           this.setUsername(credentials.username);
-          console.log(
-            'Username stored from login credentials:',
-            credentials.username
-          );
+          console.log('Username stored from login credentials:', credentials.username);
         }
       })
     );
@@ -238,7 +249,6 @@ isAuthenticated(): boolean {
   }
 
   updateFormData(id: number, formData: any): Observable<any> {
-    // Ensure profileImageBase64 is part of the transformed data
     const transformedData = {
       Id: id,
       ...this.transformFormData(formData, ['username', 'email']), 
@@ -316,7 +326,6 @@ isAuthenticated(): boolean {
             break;
 
           default:
-            // For profileImageBase64, directly assign it if it's not a form field type
             if (angularField === 'profileImageBase64') {
               transformed[backendField] = fieldValue;
             } else {
@@ -329,6 +338,7 @@ isAuthenticated(): boolean {
 
     return transformed;
   }
+
   private parseNumber(value: any): number {
     if (value === null || value === undefined || value === '') {
       return 0;
